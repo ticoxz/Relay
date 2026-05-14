@@ -1,0 +1,27 @@
+{
+  "name": "contextvc",
+  "version": "1.0.0",
+  "description": "Context Version Control - Sincronización de memoria de IA",
+  "main": "dist/cli/index.js",
+  "bin": {
+    "contextvc": "dist/cli/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/cli/index.js",
+    "dev": "ts-node src/cli/index.ts",
+    "mock:data": "ts-node scripts/mock-opencode-data.ts"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^13.0.0",
+    "dotenv": "^17.4.2",
+    "openai": "^6.37.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.0.0"
+  }
+}
