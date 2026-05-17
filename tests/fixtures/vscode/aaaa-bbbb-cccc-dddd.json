@@ -1,0 +1,28 @@
+{
+  "version": 3,
+  "sessionId": "aaaa-bbbb-cccc-dddd",
+  "creationDate": 1700000000000,
+  "customTitle": "Relay VS Code test",
+  "requests": [
+    {
+      "requestId": "req-1",
+      "message": { "text": "How do I sync AI sessions?" },
+      "response": [
+        {
+          "kind": "markdownContent",
+          "content": { "value": "Use relay sync --handoff." }
+        }
+      ]
+    },
+    {
+      "requestId": "req-2",
+      "message": { "text": "Thanks" },
+      "response": [
+        {
+          "kind": "markdownContent",
+          "content": { "value": "You're welcome." }
+        }
+      ]
+    }
+  ]
+}

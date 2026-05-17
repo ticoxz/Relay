@@ -7,14 +7,15 @@ import { AntigravityReader } from '../../plugin/antigravity-reader';
 import { AntigravityInjector } from '../../plugin/antigravity-injector';
 import { OpenCodeInjector } from '../../plugin/opencode-injector';
 import { CursorReader } from '../../plugin/cursor-reader';
+import { VSCodeReader } from '../../plugin/vscode-reader';
 import { AgeEncryption } from '../../encryption/age';
 
-const SUPPORTED_EDITORS = ['opencode', 'antigravity', 'cursor'];
+const SUPPORTED_EDITORS = ['opencode', 'antigravity', 'cursor', 'vscode'];
 
 export const injectCommand = new Command('inject')
-  .description('Inyecta sesiones entre editores (OpenCode ↔ Antigravity ↔ Cursor)')
-  .argument('<source>', 'Editor origen: opencode | antigravity | cursor')
-  .argument('<target>', 'Editor destino: opencode | antigravity | cursor')
+  .description('Inyecta sesiones entre editores (OpenCode ↔ Antigravity ↔ Cursor ↔ VS Code)')
+  .argument('<source>', 'Editor origen: opencode | antigravity | cursor | vscode')
+  .argument('<target>', 'Editor destino: opencode | antigravity | cursor | vscode')
   .option('-s, --session <id>', 'ID de sesión específica a migrar (opcional)')
   .action(async (source: string, target: string, options) => {
     if (!SUPPORTED_EDITORS.includes(source) || !SUPPORTED_EDITORS.includes(target)) {
@@ -57,6 +58,13 @@ async function resolveSession(source: string, sessionId?: string): Promise<OpenC
     return CursorReader.readLatestSession();
   }
 
+  if (source === 'vscode') {
+    if (sessionId) {
+      return VSCodeReader.readSessionById(sessionId);
+    }
+    return VSCodeReader.readLatestSession();
+  }
+
   return null;
 }
 
@@ -85,8 +93,8 @@ async function injectSpecificSession(source: string, target: string, sessionId: 
   await performInjection(session, target);
 }
 
-function writeCursorImportMarkdown(session: OpenCodeSession): string {
-  const importDir = path.join(process.cwd(), '.ai-memory', 'cursor-import');
+function writeEditorImportMarkdown(session: OpenCodeSession, subdir: string): string {
+  const importDir = path.join(process.cwd(), '.ai-memory', subdir);
   fs.mkdirSync(importDir, { recursive: true });
 
   const fileName = `session-${session.id}.md`;
@@ -131,23 +139,34 @@ async function performInjection(session: OpenCodeSession, target: string) {
   }
 
   if (target === 'cursor') {
-    const sessionPath = writeCursorImportMarkdown(session);
+    const sessionPath = writeEditorImportMarkdown(session, 'cursor-import');
     console.log('✅ Sesión exportada para Cursor.');
     console.log('');
     console.log('📋 En el chat de Cursor, referencia el archivo:');
     console.log(`   @${sessionPath}`);
     console.log('');
     console.log('⚠️  Cursor no expone API pública para importar al historial nativo.');
+    return;
+  }
+
+  if (target === 'vscode') {
+    const sessionPath = writeEditorImportMarkdown(session, 'vscode-import');
+    console.log('✅ Sesión exportada para VS Code / Copilot Chat.');
+    console.log('');
+    console.log('📋 En Copilot Chat, referencia el archivo:');
+    console.log(`   @${sessionPath}`);
+    console.log('');
+    console.log('⚠️  VS Code no permite importar al historial nativo; usa @path en un chat nuevo.');
   }
 }
 
 export const pullCommand = new Command('pull')
   .description('Descarga la última sesión del editor al repo (.ai-memory/sessions/)')
-  .argument('[editor]', 'Editor: opencode | antigravity | cursor (default: todos)')
+  .argument('[editor]', 'Editor: opencode | antigravity | cursor | vscode (default: todos)')
   .action(async (editor?: string) => {
     console.log('🔄 Descargando sesiones...');
 
-    const editors = editor ? [editor] : ['opencode', 'antigravity', 'cursor'];
+    const editors = editor ? [editor] : ['opencode', 'antigravity', 'cursor', 'vscode'];
     const memoryDir = path.join(process.cwd(), '.ai-memory', 'sessions');
 
     if (!fs.existsSync(memoryDir)) {
@@ -213,6 +232,8 @@ export const pushCommand = new Command('push')
         console.log('  relay inject antigravity opencode');
       } else if (ed === 'cursor') {
         console.log('  relay inject opencode cursor  # luego @.ai-memory/cursor-import/...');
+      } else if (ed === 'vscode') {
+        console.log('  relay inject cursor vscode  # luego @.ai-memory/vscode-import/...');
       }
     }
   });

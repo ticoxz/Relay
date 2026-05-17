@@ -56,11 +56,17 @@ git commit -m "chore: AI handoff"
 
 ```bash
 relay sync --handoff
-# Cursor: New Chat
-# En el primer mensaje:
-@.ai-memory/HANDOFF.md
-Continuá desde el handoff anterior.
 ```
+
+En Cursor: **New Chat** y en el primer mensaje (no solo adjuntar el archivo):
+
+```
+@.ai-memory/HANDOFF.md
+
+Lee el handoff y explícame en qué quedamos. No ejecutes nada hasta que te lo pida.
+```
+
+Si solo pegás la ruta del archivo sin instrucción, el agente puede interpretar «Próximos pasos» como tareas y empezar a correr comandos solo.
 
 ---
 
@@ -71,7 +77,7 @@ Continuá desde el handoff anterior.
 | `sync [--handoff]` | **Por defecto:** última sesión de cada editor (3 max) |
 | `sync --all` | Todo el historial (lento; antes era el default) |
 | `handoff` | Regenera `HANDOFF.md` |
-| `inject <src> <dst>` | `cursor` \| `opencode` \| `antigravity` |
+| `inject <src> <dst>` | `cursor` \| `vscode` \| `opencode` \| `antigravity` |
 | `init` / `status` / `team` / `install-hooks` | Setup y equipo |
 
 ### Puentes entre editores
@@ -79,7 +85,11 @@ Continuá desde el handoff anterior.
 ```bash
 relay inject cursor opencode      # sesión en historial OpenCode
 relay inject cursor antigravity   # luego @path al session.md en Antigravity
+relay inject cursor vscode        # export → @.ai-memory/vscode-import/...
+relay status --editor vscode --sessions
 ```
+
+**VS Code:** lee Copilot Chat en `~/Library/Application Support/Code/User/workspaceStorage/<hash>/chatSessions/` (`.json` / `.jsonl`). Abrí el repo en VS Code y chateá con Copilot para generar sesiones.
 
 ---
 

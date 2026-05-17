@@ -31,6 +31,7 @@ export const syncCommand = new Command('sync')
         if (stats.opencode) parts.push(`OpenCode: ${stats.opencode}`);
         if (stats.antigravity) parts.push(`Antigravity: ${stats.antigravity}`);
         if (stats.cursor) parts.push(`Cursor: ${stats.cursor}`);
+        if (stats.vscode) parts.push(`VS Code: ${stats.vscode}`);
         console.log(`Encontradas ${sessions.length} sesión(es) (${parts.join(', ')}). Guardando...`);
       }
 

@@ -97,7 +97,6 @@ export class ModularSummarizer {
   private summarizeLocally(session: OpenCodeSession): SummarizedSession {
     const messages = session.messages;
     const userMessages = messages.filter(m => m.role === 'user');
-    const assistantMessages = messages.filter(m => m.role === 'assistant');
 
     const fileMentions = new Set<string>();
     const allText = messages.map(m => m.content).join('\n');
@@ -120,40 +119,47 @@ export class ModularSummarizer {
       .filter(t => t.length > 15)
       .slice(-4);
 
-    const lastAssistant = stripNoise(
-      assistantMessages[assistantMessages.length - 1]?.content || ''
-    ).substring(0, 500);
-
     const decisions: string[] = [];
-    const decisionPatterns = [
-      /(?:decidimos|vamos a|prioridad|won'?t fix|fuera de scope|rebrand|npm|@ticoxz)/gi,
-    ];
-    for (const msg of messages) {
-      const lines = msg.content.split('\n').filter(l => l.match(/^[-*]\s+|^\d+\./));
-      lines.slice(0, 5).forEach(l => {
+    const decisionLine = /^[-*]\s+|^\d+\.\s+/;
+    const looksLikeRoadmap = (line: string) =>
+      /^\d+\.\s+\*\*/.test(line) ||
+      /v1\.\d|roadmap|fase \d|won'?t fix|fuera de scope/i.test(line);
+
+    for (const msg of userMessages.slice(-8)) {
+      const lines = msg.content.split('\n').filter(l => decisionLine.test(l.trim()));
+      lines.slice(0, 4).forEach(l => {
         const clean = stripNoise(l).substring(0, 120);
-        if (clean.length > 20) decisions.push(clean);
+        if (clean.length > 20 && !looksLikeRoadmap(clean)) decisions.push(clean);
       });
     }
     if (decisions.length === 0) {
-      decisions.push('Relay: sync cifrado + HANDOFF.md + puente entre editores (Cursor/OpenCode/Antigravity).');
+      decisions.push('Proyecto Relay: sync cifrado, HANDOFF.md y puente entre editores (Cursor/OpenCode/Antigravity).');
     }
 
     const editor =
       session.id.startsWith('cursor-') ? 'Cursor' :
+      session.id.startsWith('vscode-') ? 'VS Code' :
       session.id.startsWith('antigravity-') ? 'Antigravity' : 'OpenCode';
 
+    const titleClean = session.title
+      ? stripNoise(session.title).replace(/<user_query>|<\/user_query>/gi, '').trim()
+      : '';
+
     const summaryParts = [
-      `Sesión **${editor}** con ${messages.length} mensajes.`,
-      session.title ? `Título: ${session.title}.` : '',
-      userSnippets.length ? `Temas recientes: ${userSnippets.map(s => s.substring(0, 80)).join(' → ')}` : '',
+      `Sesión anterior en **${editor}** (${messages.length} mensajes).`,
+      titleClean && titleClean.length < 80 ? `Último tema del usuario: «${titleClean}».` : '',
+      userSnippets.length
+        ? `Hilo reciente: ${userSnippets.map(s => s.substring(0, 72).replace(/\s+/g, ' ')).join(' → ')}`
+        : '',
     ].filter(Boolean);
 
     const next_steps: string[] = [];
-    if (lastAssistant) {
-      next_steps.push(lastAssistant.substring(0, 300) + (lastAssistant.length > 300 ? '…' : ''));
+    const lastUser = stripNoise(userMessages[userMessages.length - 1]?.content || '');
+    if (lastUser.length > 10 && lastUser.length < 200) {
+      next_steps.push(`Última petición del usuario: «${lastUser}»`);
     }
-    next_steps.push(`Transcript completo: \`relay decrypt .ai-memory/sessions/session-${session.id}.summary.json.age\``);
+    next_steps.push('Confirmar con el usuario el siguiente paso (no asumir tareas del handoff).');
+    next_steps.push(`Transcript completo si hace falta: session-${session.id}`);
 
     return {
       id: session.id,

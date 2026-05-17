@@ -8,11 +8,12 @@ import { AgeEncryption } from '../../encryption/age';
 import { readOpenCodeSessions } from '../../plugin/storage-reader';
 import { AntigravityReader } from '../../plugin/antigravity-reader';
 import { CursorReader } from '../../plugin/cursor-reader';
+import { VSCodeReader } from '../../plugin/vscode-reader';
 
 export const statusCommand = new Command('status')
   .description('Muestra el estado actual de las sesiones sincronizadas')
   .option('--json', 'Muestra el resultado en formato JSON')
-  .option('--editor <name>', 'Editor: opencode | antigravity | cursor')
+  .option('--editor <name>', 'Editor: opencode | antigravity | cursor | vscode')
   .option('--sessions', 'Lista las sesiones de cada editor')
   .action(async (options) => {
     try {
@@ -61,7 +62,7 @@ export const statusCommand = new Command('status')
         console.log(`  HANDOFF.md: ${Math.round(stat.size / 1024)} KB (${stat.mtime.toLocaleString()})`);
       }
 
-      console.log(`\n${'Editores:'} opencode | antigravity | cursor`);
+      console.log(`\n${'Editores:'} opencode | antigravity | cursor | vscode`);
       console.log(`  relay status --editor <nombre> --sessions`);
 
       const recipients = AgeEncryption.getRecipients();
@@ -143,8 +144,32 @@ async function showEditorStatus(editor: string, showSessions: boolean) {
       console.log(`\n  Sincronizar: relay pull cursor`);
       console.log(`  Inyectar a otro editor: relay inject cursor antigravity`);
     }
+  } else if (editor === 'vscode') {
+    Logger.header('📊 VS Code / Copilot Chat Sessions');
+    const roots = VSCodeReader.getUserDataRoots();
+    const sessions = await VSCodeReader.listSessions();
+    const dirs = VSCodeReader.discoverChatSessionDirs();
+
+    console.log(`\n  Instalaciones: ${roots.map(r => r.label).join(', ') || 'ninguna'}`);
+    console.log(`  Sesiones (proyecto actual): ${sessions.length}`);
+    if (dirs.length > 0) {
+      console.log(`  Ubicación: ${dirs[0].dir}`);
+    } else {
+      console.log(`  Ubicación: ~/Library/Application Support/Code/User/workspaceStorage/<hash>/chatSessions/`);
+      console.log(`  ℹ️  Abrí este repo en VS Code y usá Copilot Chat para crear sesiones.`);
+    }
+
+    if (showSessions && sessions.length > 0) {
+      console.log(`\n${'Sesiones recientes:'}`);
+      sessions.slice(0, 5).forEach((s, i) => {
+        const date = new Date(s.mtime).toLocaleString();
+        console.log(`  ${i + 1}. ${s.id} (${date})`);
+      });
+      console.log(`\n  Sincronizar: relay pull vscode`);
+      console.log(`  Inyectar: relay inject vscode cursor`);
+    }
   } else {
-    Logger.error(`Editor desconocido: ${editor}. Usa: opencode | antigravity | cursor`);
+    Logger.error(`Editor desconocido: ${editor}. Usa: opencode | antigravity | cursor | vscode`);
     process.exit(1);
   }
 }

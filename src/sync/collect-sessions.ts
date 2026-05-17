@@ -1,6 +1,7 @@
 import { readOpenCodeSessions, OpenCodeSession } from '../plugin/storage-reader';
 import { AntigravityReader } from '../plugin/antigravity-reader';
 import { CursorReader } from '../plugin/cursor-reader';
+import { VSCodeReader } from '../plugin/vscode-reader';
 
 export interface CollectSessionsOptions {
   /** Si true, importa todo el historial de cada editor. Por defecto: solo la más reciente por editor. */
@@ -10,14 +11,14 @@ export interface CollectSessionsOptions {
 
 export interface CollectSessionsResult {
   sessions: OpenCodeSession[];
-  stats: { opencode: number; antigravity: number; cursor: number };
+  stats: { opencode: number; antigravity: number; cursor: number; vscode: number };
 }
 
 export async function collectSessionsForSync(
   options: CollectSessionsOptions = {}
 ): Promise<CollectSessionsResult> {
   const projectPath = options.projectPath || process.cwd();
-  const stats = { opencode: 0, antigravity: 0, cursor: 0 };
+  const stats = { opencode: 0, antigravity: 0, cursor: 0, vscode: 0 };
   const sessions: OpenCodeSession[] = [];
 
   if (options.all) {
@@ -40,6 +41,14 @@ export async function collectSessionsForSync(
     }
     sessions.push(...cursorSessions);
     stats.cursor = cursorSessions.length;
+
+    const vscodeSessions: OpenCodeSession[] = [];
+    for (const { id } of await VSCodeReader.listSessions(projectPath)) {
+      const s = await VSCodeReader.readSessionById(id, projectPath);
+      if (s) vscodeSessions.push(s);
+    }
+    sessions.push(...vscodeSessions);
+    stats.vscode = vscodeSessions.length;
   } else {
     const opencode = await readOpenCodeSessions();
     if (opencode.length > 0) {
@@ -58,6 +67,12 @@ export async function collectSessionsForSync(
       sessions.push(cursor);
       stats.cursor = 1;
     }
+
+    const vscode = await VSCodeReader.readLatestSession(projectPath);
+    if (vscode) {
+      sessions.push(vscode);
+      stats.vscode = 1;
+    }
   }
 
   return { sessions, stats };
@@ -70,6 +85,11 @@ export function pickPrimarySession(sessions: OpenCodeSession[]): OpenCodeSession
   const cursor = sessions.filter(s => s.id.startsWith('cursor-'));
   if (cursor.length > 0) {
     return cursor.sort((a, b) => b.createdAt - a.createdAt)[0];
+  }
+
+  const vscode = sessions.filter(s => s.id.startsWith('vscode-'));
+  if (vscode.length > 0) {
+    return vscode.sort((a, b) => b.createdAt - a.createdAt)[0];
   }
 
   const ag = sessions.filter(s => s.id.startsWith('antigravity-'));

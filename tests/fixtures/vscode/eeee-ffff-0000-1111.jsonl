@@ -1,0 +1,2 @@
+{"kind":0,"inputState":{"version":3,"sessionId":"eeee-ffff-0000-1111","creationDate":1700000100000,"customTitle":"JSONL session","requests":[]}}
+{"kind":2,"path":["requests",0],"value":{"requestId":"r1","message":{"text":"Hello from jsonl"},"response":[{"kind":"markdownContent","content":{"value":"Hello back"}}]}}

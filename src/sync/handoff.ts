@@ -36,32 +36,46 @@ function formatHandoffMarkdown(
   const date = new Date().toISOString();
   const { summary, decisions, key_files, next_steps } = summarized.content;
 
+  const sessionFile = `session-${session.id}.summary.json.age`;
+
   return `# AI Session Handoff
 
 > Generado por Relay el ${date}
 > Sesión: \`${session.id}\` | Proyecto: \`${session.project}\`
 
+## Para el asistente (leer primero)
+
+Este archivo es **memoria de una sesión anterior**, no un plan de ejecución automático.
+
+1. **Explicá** al usuario en lenguaje claro (2–4 párrafos): qué se hizo, qué quedó pendiente y dónde está el proyecto.
+2. **No** ejecutes comandos, no explores el repo ni edites archivos hasta que el usuario lo pida explícitamente.
+3. **Preguntá** al final qué quiere hacer ahora (ej. publicar npm, seguir una feature, revisar un archivo).
+
+Si el usuario solo adjuntó este archivo sin más texto, tu primera respuesta debe ser esa explicación + pregunta — no empezar a implementar.
+
+---
+
 ## Resumen
 
 ${summary}
 
-## Decisiones
+## Decisiones tomadas
 
 ${decisions.length ? decisions.map(d => `- ${d}`).join('\n') : '- (ninguna detectada)'}
 
-## Archivos clave
+## Archivos relevantes
 
 ${key_files.length ? key_files.map(f => `- \`${f}\``).join('\n') : '- (ninguno detectado)'}
 
-## Próximos pasos
+## Pendientes (orientativos, no ejecutar solos)
 
-${next_steps.length ? next_steps.map(s => `- ${s}`).join('\n') : '- Continuar desde la sesión completa en `.ai-memory/sessions/`'}
+${next_steps.length ? next_steps.map(s => `- ${s}`).join('\n') : '- El usuario indicará el siguiente paso en este chat.'}
 
 ---
 
-*Este archivo complementa \`context.md\` / \`CLAUDE.md\`: esos definen el proyecto; este documento captura el estado de la última sesión de IA.*
+*Complementa \`context.md\` / \`CLAUDE.md\` (manual del proyecto). Este archivo = estado de la última sesión de IA.*
 
-Para el transcript cifrado: \`relay decrypt .ai-memory/sessions/session-${session.id}.summary.json.age\` (o \`.json.age\`)
+Transcript cifrado: \`relay decrypt .ai-memory/sessions/${sessionFile}\`
 `;
 }
 

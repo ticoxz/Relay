@@ -40,6 +40,7 @@ describe('generateHandoff', () => {
     expect(fs.existsSync(out)).toBe(true);
     const content = fs.readFileSync(out, 'utf-8');
     expect(content).toContain('# AI Session Handoff');
+    expect(content).toContain('Para el asistente');
     expect(content).toContain('handoff-1');
   });
 });
