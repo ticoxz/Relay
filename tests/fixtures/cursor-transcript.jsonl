@@ -1,0 +1,2 @@
+{"role":"user","message":{"content":[{"type":"text","text":"Fix the auth module"}]}}
+{"role":"assistant","message":{"content":[{"type":"text","text":"I'll update src/auth/validator.ts to use JWT."}]}}

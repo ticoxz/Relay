@@ -1,26 +1,59 @@
 {
   "name": "contextvc",
-  "version": "1.0.0",
-  "description": "Context Version Control - Sincronización de memoria de IA",
+  "version": "1.0.1",
+  "description": "Git para sesiones de IA — sincroniza contexto cifrado entre editores y tu equipo",
   "main": "dist/cli/index.js",
   "bin": {
     "contextvc": "dist/cli/index.js"
   },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "build": "tsc",
+    "prepublishOnly": "npm run build",
     "start": "node dist/cli/index.js",
     "dev": "ts-node src/cli/index.ts",
-    "mock:data": "ts-node scripts/mock-opencode-data.ts"
+    "mock:data": "ts-node scripts/mock-opencode-data.ts",
+    "test": "jest",
+    "test:watch": "jest --watch"
   },
-  "author": "",
+  "keywords": [
+    "ai",
+    "cursor",
+    "context",
+    "git",
+    "encryption",
+    "age",
+    "opencode",
+    "antigravity"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/anomalyco/tupac.git"
+  },
+  "author": "Marcelo Miranda",
   "license": "MIT",
   "dependencies": {
+    "chalk": "^4.1.2",
     "commander": "^13.0.0",
     "dotenv": "^17.4.2",
-    "openai": "^6.37.0"
+    "glob": "^13.0.6",
+    "inquirer": "^13.4.3",
+    "openai": "^6.37.0",
+    "rimraf": "^6.1.3",
+    "sqlite3": "^6.0.1"
   },
   "devDependencies": {
+    "@types/inquirer": "^9.0.9",
+    "@types/jest": "^30.0.0",
     "@types/node": "^22.0.0",
+    "jest": "^30.4.2",
+    "ts-jest": "^29.4.9",
     "ts-node": "^10.9.2",
     "typescript": "^5.0.0"
   }

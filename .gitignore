@@ -1,0 +1,16 @@
+node_modules/
+dist/
+.ai-memory/sessions/
+.ai-memory/summaries/
+.ai-memory/.backups/
+.env
+.env.*
+*.local
+dec.json
+output.json
+test.json
+temp-import.json
+scratch.js
+.DS_Store
+*.log
+coverage/
