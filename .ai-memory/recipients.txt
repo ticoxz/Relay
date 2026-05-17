@@ -1,0 +1,2 @@
+ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBjrooVqngs7i3bI4MvIE2LZ3juXgB/199id67BoucVU marcelomiranda@Marcelos-MacBook-Pro.local
+ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBjrooVqngs7i3bI4MvIE2LZ3juXgB/199id67BoucVU marcelomiranda@Marcelos-MacBook-Pro.local
