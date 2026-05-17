@@ -95,23 +95,65 @@ export class ModularSummarizer {
   }
 
   private summarizeLocally(session: OpenCodeSession): SummarizedSession {
-    // Implementación de resumen local (sin LLM)
     const messages = session.messages;
     const userMessages = messages.filter(m => m.role === 'user');
     const assistantMessages = messages.filter(m => m.role === 'assistant');
 
-    // Extraer archivos mencionados (heurística simple)
     const fileMentions = new Set<string>();
-    const allText = messages.map(m => m.content).join(' ');
-    const filePattern = /\b([\w\/]+\.(?:ts|js|tsx|jsx|py|go|rs|java|md))\b/g;
+    const allText = messages.map(m => m.content).join('\n');
+    const filePattern = /\b([\w./-]+\.(?:ts|tsx|js|jsx|py|go|rs|java|md|json))\b/g;
     let match;
     while ((match = filePattern.exec(allText)) !== null) {
-      fileMentions.add(match[1]);
+      const f = match[1];
+      if (!f.includes('node_modules')) fileMentions.add(f);
     }
 
-    // Primeros mensajes como resumen
-    const firstUser = userMessages[0]?.content.substring(0, 200) || '';
-    const lastAssistant = assistantMessages[assistantMessages.length - 1]?.content.substring(0, 200) || '';
+    const stripNoise = (text: string) =>
+      text
+        .replace(/<user_query>[\s\S]*?<\/user_query>/g, (m) => m.replace(/<\/?user_query>/g, '').trim())
+        .replace(/REDACTED/g, '')
+        .replace(/▣\s*Build[^\n]*/g, '')
+        .trim();
+
+    const userSnippets = userMessages
+      .map(m => stripNoise(m.content))
+      .filter(t => t.length > 15)
+      .slice(-4);
+
+    const lastAssistant = stripNoise(
+      assistantMessages[assistantMessages.length - 1]?.content || ''
+    ).substring(0, 500);
+
+    const decisions: string[] = [];
+    const decisionPatterns = [
+      /(?:decidimos|vamos a|prioridad|won'?t fix|fuera de scope|rebrand|npm|@ticoxz)/gi,
+    ];
+    for (const msg of messages) {
+      const lines = msg.content.split('\n').filter(l => l.match(/^[-*]\s+|^\d+\./));
+      lines.slice(0, 5).forEach(l => {
+        const clean = stripNoise(l).substring(0, 120);
+        if (clean.length > 20) decisions.push(clean);
+      });
+    }
+    if (decisions.length === 0) {
+      decisions.push('Relay: sync cifrado + HANDOFF.md + puente entre editores (Cursor/OpenCode/Antigravity).');
+    }
+
+    const editor =
+      session.id.startsWith('cursor-') ? 'Cursor' :
+      session.id.startsWith('antigravity-') ? 'Antigravity' : 'OpenCode';
+
+    const summaryParts = [
+      `Sesión **${editor}** con ${messages.length} mensajes.`,
+      session.title ? `Título: ${session.title}.` : '',
+      userSnippets.length ? `Temas recientes: ${userSnippets.map(s => s.substring(0, 80)).join(' → ')}` : '',
+    ].filter(Boolean);
+
+    const next_steps: string[] = [];
+    if (lastAssistant) {
+      next_steps.push(lastAssistant.substring(0, 300) + (lastAssistant.length > 300 ? '…' : ''));
+    }
+    next_steps.push(`Transcript completo: \`relay decrypt .ai-memory/sessions/session-${session.id}.summary.json.age\``);
 
     return {
       id: session.id,
@@ -120,10 +162,10 @@ export class ModularSummarizer {
       project: session.project,
       isSummary: true,
       content: {
-        summary: `Sesión de ${messages.length} mensajes. ${firstUser}...`,
-        decisions: ['Resumen generado localmente (sin LLM)'],
-        key_files: Array.from(fileMentions).slice(0, 10),
-        next_steps: lastAssistant ? [`Última respuesta: ${lastAssistant}...`] : ['Ver sesión completa'],
+        summary: summaryParts.join(' '),
+        decisions: [...new Set(decisions)].slice(0, 8),
+        key_files: Array.from(fileMentions).slice(0, 12),
+        next_steps,
       },
     };
   }

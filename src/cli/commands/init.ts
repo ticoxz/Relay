@@ -96,8 +96,7 @@ export const initCommand = new Command('init')
       // 5. Instalar Git Hooks
       Logger.step(4, 'Instalando Git Hooks...');
       try {
-        HookInstaller.installPreCommit();
-        Logger.success('Git hook pre-commit instalado.');
+        HookInstaller.installAll();
       } catch (e: any) {
         Logger.warn('No se pudieron instalar los Git Hooks: ' + e.message);
       }

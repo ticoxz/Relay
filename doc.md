@@ -371,8 +371,9 @@ relay/
 npx relay init
 npx relay init --yes          # Modo automático con defaults
 
-# Sincronizar sesiones locales → repo
-npx relay sync
+# Sincronizar sesiones locales → repo (v1.2: última sesión por editor)
+npx relay sync --handoff
+npx relay sync --all          # Todo el historial (lento; pre-1.2 era el default)
 
 # Ver estado actual (dashboard CLI)
 npx relay status
@@ -465,6 +466,13 @@ AGE_RECIPIENTS_FILE=./.ai-memory/recipients.txt  # Auto-configurada
 - Guía de onboarding equipo en README
 - Tests de integración (writer, merge, cursor-reader)
 - Mejoras en reader Antigravity (listar múltiples sesiones)
+
+### v1.2 — Sync rápido + npm (actual)
+
+- `sync` por defecto: **última sesión por editor**; `--all` para historial completo
+- `pickPrimarySession()` para HANDOFF (Cursor > Antigravity > OpenCode)
+- Paquete npm: `@ticoxz/relay@1.2.0`
+- Summarizer local menos truncado; hook pre-commit con `--handoff`
 
 ### Fuera de scope v1.x
 

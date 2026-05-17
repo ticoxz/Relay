@@ -20,7 +20,7 @@ const PRE_COMMIT_HOOK_CONTENT = `
 # --- relay automation start ---
 relay_auto_sync() {
 ${RELAY_DETECT}
-  if $RELAY_CMD sync --quiet 2>/dev/null; then
+  if $RELAY_CMD sync --quiet --handoff 2>/dev/null; then
     git add .ai-memory/sessions/*.age 2>/dev/null || true
     git add .ai-memory/sessions/*.json 2>/dev/null || true
     git add .ai-memory/HANDOFF.md 2>/dev/null || true

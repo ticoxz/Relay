@@ -1,6 +1,6 @@
 {
-  "name": "relay",
-  "version": "1.1.0",
+  "name": "@ticoxz/relay",
+  "version": "1.2.0",
   "description": "Git para sesiones de IA — sincroniza contexto cifrado entre editores y tu equipo",
   "main": "dist/cli/index.js",
   "bin": {
@@ -15,9 +15,12 @@
   "engines": {
     "node": ">=18"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsc",
-    "prepublishOnly": "npm run build",
+    "prepublishOnly": "npm run build && npm test",
     "start": "node dist/cli/index.js",
     "dev": "ts-node src/cli/index.ts",
     "mock:data": "ts-node scripts/mock-opencode-data.ts",
@@ -32,7 +35,9 @@
     "encryption",
     "age",
     "opencode",
-    "antigravity"
+    "antigravity",
+    "relay",
+    "handoff"
   ],
   "repository": {
     "type": "git",

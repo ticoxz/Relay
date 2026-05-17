@@ -8,52 +8,58 @@
 
 ## El problema
 
-Cada editor (Cursor, OpenCode, Antigravity…) guarda el historial en formatos propietarios y locales. Si cambiás de máquina, de compañero o de editor, perdés horas de contexto: decisiones, trade-offs, archivos discutidos.
+Cada editor (Cursor, OpenCode, Antigravity…) guarda el historial en formatos propietarios y locales. Si cambiás de máquina, de compañero o de editor, perdés horas de contexto.
 
 ## La solución: dos modos
 
 | Modo | Para qué | Flujo |
 |------|----------|--------|
-| **A — Team Relay** (principal) | Tu compañero continúa donde vos dejaste | `relay sync` → `git commit` → `git pull` → leer `HANDOFF.md` |
-| **B — Editor bridge** (secundario) | Cambiar de editor sin empezar de cero | `relay inject opencode antigravity` → `@session.md` en el chat |
+| **A — Team Relay** | Guardar / compartir estado | `relay sync --handoff` → `git commit` |
+| **B — Editor bridge** | Otro editor, mismo chat | `relay inject cursor opencode` |
 
-### Relay vs `context.md` vs memoria de Cursor
+### Relay vs `context.md`
 
-- **`context.md` / `CLAUDE.md` / rules** = manual del proyecto (estable, curado, pequeño).
-- **Memoria nativa del editor** = optimizada dentro de *un* producto; no porta a Git ni a otro editor.
-- **Relay** = bitácora de la sesión de IA + relay de equipo cifrado en el repo.
+- **`context.md`** = manual del proyecto (estable, pequeño).
+- **Relay** = bitácora de la sesión + handoff cifrado en Git.
 
-> *`context.md` dice cómo es el proyecto; Relay preserva qué decidió la IA contigo ayer y lo deja continuar en otra máquina, otro editor u otra persona.*
+> *`context.md` dice cómo es el proyecto; Relay preserva en qué estabas con la IA.*
 
-> El binario `contextvc` sigue disponible como alias de `relay` por compatibilidad.
+Relay **no agranda** la ventana de contexto del editor. Te deja **guardar partida** y **cargar partida** en un chat nuevo.
 
 ---
 
-## Quickstart (3 comandos)
-
-**Requisitos:** Node 18+, [age](https://github.com/FiloSottile/age) (`brew install age`), repo Git.
+## Instalación
 
 ```bash
-npm install -g relay   # o: npx relay
+npm install -g @ticoxz/relay
+# desarrollo local:
+git clone https://github.com/ticoxz/Relay.git && cd Relay
+npm install && npm run build && npm link
+```
+
+Requisitos: Node 18+, [age](https://github.com/FiloSottile/age) (`brew install age`), repo Git.
+
+---
+
+## Quickstart
+
+```bash
 cd tu-proyecto && git init
 relay init
-# … trabajá con tu IA …
+# … trabajá con Cursor / OpenCode / Antigravity …
+relay sync --handoff          # solo la última sesión por editor (rápido)
+git add .ai-memory/HANDOFF.md .ai-memory/config.json .ai-memory/recipients.txt
+git commit -m "chore: AI handoff"
+```
+
+### Chat al 84% de contexto → empezar de cero sin perder el hilo
+
+```bash
 relay sync --handoff
-git add .ai-memory && git commit -m "chore: sync AI context"
-```
-
-Tu compañero:
-
-```bash
-git pull
-cat .ai-memory/HANDOFF.md
-relay decrypt .ai-memory/sessions/session-*.json.age  # transcript completo
-```
-
-Hooks automáticos (opcional):
-
-```bash
-relay install-hooks
+# Cursor: New Chat
+# En el primer mensaje:
+@.ai-memory/HANDOFF.md
+Continuá desde el handoff anterior.
 ```
 
 ---
@@ -62,54 +68,28 @@ relay install-hooks
 
 | Comando | Descripción |
 |---------|-------------|
-| `init` | Wizard: encriptación, summarizer, `.ai-memory/` |
-| `sync [--handoff]` | Extrae sesiones de editores → repo |
-| `handoff [--from-repo]` | Genera `.ai-memory/HANDOFF.md` |
-| `pull [editor]` | `opencode` \| `antigravity` \| `cursor` |
-| `inject <src> <dst>` | Migra sesión entre editores |
-| `status [--editor]` | Estado del repo y editores |
-| `install-hooks` | pre-commit + post-checkout/merge |
-| `team auto-add` | SSH keys → destinatarios age |
-| `merge` / `decrypt` | Conflictos y lectura |
+| `sync [--handoff]` | **Por defecto:** última sesión de cada editor (3 max) |
+| `sync --all` | Todo el historial (lento; antes era el default) |
+| `handoff` | Regenera `HANDOFF.md` |
+| `inject <src> <dst>` | `cursor` \| `opencode` \| `antigravity` |
+| `init` / `status` / `team` / `install-hooks` | Setup y equipo |
 
-### Antigravity (flujo oficial)
+### Puentes entre editores
 
 ```bash
-relay inject opencode antigravity
-# Copiar el @path que imprime el CLI
-```
-
-La sesión **no aparece en el panel lateral** (requiere `.pb` encriptados). Usar **`@path`** al `session.md` generado.
-
-### Cursor
-
-```bash
-relay pull cursor
-relay status --editor cursor --sessions
-relay inject cursor antigravity
-```
-
-Lee `~/.cursor/projects/<proyecto>/agent-transcripts/*.jsonl`.
-
----
-
-## Arquitectura
-
-```
-Editores → readers → JSON estándar → age → .ai-memory/ → Git → HANDOFF.md
+relay inject cursor opencode      # sesión en historial OpenCode
+relay inject cursor antigravity   # luego @path al session.md en Antigravity
 ```
 
 ---
 
-## Desarrollo
+## Publicar / desarrollo
 
 ```bash
-git clone https://github.com/ticoxz/Relay.git
-cd Relay && npm install && npm run build && npm test
+npm run build && npm test
+npm publish --access public   # paquete: @ticoxz/relay
 ```
 
 ---
 
-## Licencia
-
-MIT — Marcelo Miranda
+MIT — [ticoxz/Relay](https://github.com/ticoxz/Relay)

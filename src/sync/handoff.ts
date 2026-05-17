@@ -61,7 +61,7 @@ ${next_steps.length ? next_steps.map(s => `- ${s}`).join('\n') : '- Continuar de
 
 *Este archivo complementa \`context.md\` / \`CLAUDE.md\`: esos definen el proyecto; este documento captura el estado de la última sesión de IA.*
 
-Para el transcript completo cifrado: \`relay decrypt .ai-memory/sessions/session-${session.id}.json.age\`
+Para el transcript cifrado: \`relay decrypt .ai-memory/sessions/session-${session.id}.summary.json.age\` (o \`.json.age\`)
 `;
 }
 
