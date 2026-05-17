@@ -36,7 +36,7 @@ export class OpenCodeInjector {
         slug: "injected-session",
         projectID: "global",
         directory: session.project || process.cwd(),
-        title: "Sincronizado desde " + (session.id.includes('antigravity') ? 'Antigravity' : 'ContextVC'),
+        title: "Sincronizado desde " + (session.id.includes('antigravity') ? 'Antigravity' : 'Relay'),
         version: "1.0.0",
         summary: { additions: 0, deletions: 0, files: 0 },
         cost: 0,

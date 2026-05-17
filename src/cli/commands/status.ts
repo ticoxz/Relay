@@ -36,7 +36,7 @@ export const statusCommand = new Command('status')
         return;
       }
 
-      Logger.header('📊 Estado de ContextVC');
+      Logger.header('📊 Estado de Relay');
 
       console.log(`\n${'Configuración:'}`);
       console.log(`  Proyecto: ${path.basename(process.cwd())}`);
@@ -62,7 +62,7 @@ export const statusCommand = new Command('status')
       }
 
       console.log(`\n${'Editores:'} opencode | antigravity | cursor`);
-      console.log(`  contextvc status --editor <nombre> --sessions`);
+      console.log(`  relay status --editor <nombre> --sessions`);
 
       const recipients = AgeEncryption.getRecipients();
       if (recipients.length > 0) {
@@ -95,7 +95,7 @@ async function showEditorStatus(editor: string, showSessions: boolean) {
       });
 
       console.log(`\n  Para inyectar a Antigravity:`);
-      console.log(`  contextvc inject opencode antigravity`);
+      console.log(`  relay inject opencode antigravity`);
     }
   } else if (editor === 'antigravity') {
     Logger.header('📊 Antigravity Sessions');
@@ -125,7 +125,7 @@ async function showEditorStatus(editor: string, showSessions: boolean) {
         console.log(`  ${i + 1}. ${id.substring(0, 8)}... (${size} KB)`);
       });
 
-      console.log(`\n  Inyectar: contextvc inject opencode antigravity`);
+      console.log(`\n  Inyectar: relay inject opencode antigravity`);
       console.log(`  Usar en Antigravity: @~/.gemini/antigravity/brain/<ID>/session.md`);
     }
   } else if (editor === 'cursor') {
@@ -140,8 +140,8 @@ async function showEditorStatus(editor: string, showSessions: boolean) {
         const date = new Date(s.mtime).toLocaleString();
         console.log(`  ${i + 1}. ${s.id} (${date})`);
       });
-      console.log(`\n  Sincronizar: contextvc pull cursor`);
-      console.log(`  Inyectar a otro editor: contextvc inject cursor antigravity`);
+      console.log(`\n  Sincronizar: relay pull cursor`);
+      console.log(`  Inyectar a otro editor: relay inject cursor antigravity`);
     }
   } else {
     Logger.error(`Editor desconocido: ${editor}. Usa: opencode | antigravity | cursor`);

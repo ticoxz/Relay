@@ -8,12 +8,12 @@ import { Logger } from '../../core/logger';
 import { BackupManager } from '../../core/backup';
 
 export const initCommand = new Command('init')
-  .description('Inicializa contextvc en el repositorio actual con wizard interactivo')
+  .description('Inicializa Relay en el repositorio actual con wizard interactivo')
   .option('-y, --yes', 'Usa configuraciones por defecto sin preguntar')
   .action(async (options) => {
     const isAuto = options.yes;
     
-    Logger.header('🚀 Context Version Control - Inicialización');
+    Logger.header('🚀 Relay — Inicialización');
     
     try {
       // 1. Validar que estamos en un repo git
@@ -130,11 +130,11 @@ export const initCommand = new Command('init')
 
       // Resumen
       Logger.divider();
-      Logger.success('¡ContextVC inicializado correctamente!');
+      Logger.success('¡Relay inicializado correctamente!');
       console.log('\nPróximos pasos:');
-      console.log('  1. Añade llaves SSH de tu equipo: contextvc team add "ssh-ed25519 ..."');
-      console.log('  2. Sincroniza tus sesiones: contextvc sync');
-      console.log('  3. Ver estado: contextvc status\n');
+      console.log('  1. Añade llaves SSH de tu equipo: relay team add "ssh-ed25519 ..."');
+      console.log('  2. Sincroniza tus sesiones: relay sync --handoff');
+      console.log('  3. Ver estado: relay status\n');
 
     } catch (error: any) {
       Logger.error('Error durante la inicialización: ' + error.message);

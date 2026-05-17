@@ -43,7 +43,7 @@ export async function writeSessionsToRepo(
   const memoryDir = path.join(cwd, '.ai-memory', 'sessions');
 
   if (!fs.existsSync(memoryDir)) {
-    throw new Error('El directorio .ai-memory/sessions no existe. Asegúrate de correr "contextvc init" primero.');
+    throw new Error('El directorio .ai-memory/sessions no existe. Asegúrate de correr "relay init" primero.');
   }
 
   const config = ConfigManager.load();

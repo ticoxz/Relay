@@ -1,22 +1,26 @@
 import fs from 'fs';
 import path from 'path';
 
-const CVC_DETECT = `
-  local CVC_CMD
-  if npx --no-install contextvc --version >/dev/null 2>&1; then
-    CVC_CMD="npx --no-install contextvc"
+const RELAY_DETECT = `
+  local RELAY_CMD
+  if npx --no-install relay --version >/dev/null 2>&1; then
+    RELAY_CMD="npx --no-install relay"
+  elif command -v relay >/dev/null 2>&1; then
+    RELAY_CMD="relay"
+  elif npx --no-install contextvc --version >/dev/null 2>&1; then
+    RELAY_CMD="npx --no-install contextvc"
   elif command -v contextvc >/dev/null 2>&1; then
-    CVC_CMD="contextvc"
+    RELAY_CMD="contextvc"
   else
     return 0
   fi
 `;
 
 const PRE_COMMIT_HOOK_CONTENT = `
-# --- contextvc automation start ---
-contextvc_auto_sync() {
-${CVC_DETECT}
-  if $CVC_CMD sync --quiet 2>/dev/null; then
+# --- relay automation start ---
+relay_auto_sync() {
+${RELAY_DETECT}
+  if $RELAY_CMD sync --quiet 2>/dev/null; then
     git add .ai-memory/sessions/*.age 2>/dev/null || true
     git add .ai-memory/sessions/*.json 2>/dev/null || true
     git add .ai-memory/HANDOFF.md 2>/dev/null || true
@@ -24,28 +28,34 @@ ${CVC_DETECT}
   return 0
 }
 
-contextvc_auto_sync
-# --- contextvc automation end ---
+relay_auto_sync
+# --- relay automation end ---
 `;
 
 const POST_CHECKOUT_HOOK_CONTENT = `
-# --- contextvc automation start ---
-contextvc_post_checkout() {
-${CVC_DETECT}
-  $CVC_CMD handoff --from-repo --quiet 2>/dev/null || true
+# --- relay automation start ---
+relay_post_checkout() {
+${RELAY_DETECT}
+  $RELAY_CMD handoff --from-repo --quiet 2>/dev/null || true
   return 0
 }
 
-contextvc_post_checkout
-# --- contextvc automation end ---
+relay_post_checkout
+# --- relay automation end ---
 `;
 
 const POST_MERGE_HOOK_CONTENT = POST_CHECKOUT_HOOK_CONTENT.replace(
-  'contextvc_post_checkout',
-  'contextvc_post_merge'
+  'relay_post_checkout',
+  'relay_post_merge'
 );
 
+const HOOK_MARKERS = ['relay automation', 'contextvc automation'];
+
 export class HookInstaller {
+  private static hasRelayHook(content: string): boolean {
+    return HOOK_MARKERS.some(marker => content.includes(marker));
+  }
+
   private static appendOrCreateHook(hookName: string, content: string): void {
     const gitDir = path.join(process.cwd(), '.git');
     if (!fs.existsSync(gitDir)) {
@@ -61,7 +71,7 @@ export class HookInstaller {
 
     if (fs.existsSync(hookPath)) {
       const existingContent = fs.readFileSync(hookPath, 'utf-8');
-      if (existingContent.includes('contextvc automation')) {
+      if (this.hasRelayHook(existingContent)) {
         return;
       }
       fs.appendFileSync(hookPath, content);

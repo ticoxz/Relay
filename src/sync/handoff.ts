@@ -38,7 +38,7 @@ function formatHandoffMarkdown(
 
   return `# AI Session Handoff
 
-> Generado por ContextVC el ${date}
+> Generado por Relay el ${date}
 > Sesión: \`${session.id}\` | Proyecto: \`${session.project}\`
 
 ## Resumen
@@ -61,7 +61,7 @@ ${next_steps.length ? next_steps.map(s => `- ${s}`).join('\n') : '- Continuar de
 
 *Este archivo complementa \`context.md\` / \`CLAUDE.md\`: esos definen el proyecto; este documento captura el estado de la última sesión de IA.*
 
-Para el transcript completo cifrado: \`contextvc decrypt .ai-memory/sessions/session-${session.id}.json.age\`
+Para el transcript completo cifrado: \`relay decrypt .ai-memory/sessions/session-${session.id}.json.age\`
 `;
 }
 
@@ -81,7 +81,7 @@ export async function generateHandoff(
   }
 
   if (!targetSession) {
-    throw new Error('No hay sesión disponible. Ejecuta `contextvc sync` o pasa una sesión.');
+    throw new Error('No hay sesión disponible. Ejecuta `relay sync` o pasa una sesión.');
   }
 
   const config = ConfigManager.load();

@@ -1,6 +1,8 @@
-# Tupac (ContextVC)
+# Relay
 
 **Git para sesiones de IA** — sincroniza el razonamiento de tu asistente con tu código, cifrado y listo para el equipo.
+
+[![GitHub](https://img.shields.io/github/stars/ticoxz/Relay?style=social)](https://github.com/ticoxz/Relay)
 
 ---
 
@@ -12,16 +14,18 @@ Cada editor (Cursor, OpenCode, Antigravity…) guarda el historial en formatos p
 
 | Modo | Para qué | Flujo |
 |------|----------|--------|
-| **A — Team Relay** (principal) | Tu compañero continúa donde vos dejaste | `sync` → `git commit` → `git pull` → leer `HANDOFF.md` |
-| **B — Editor bridge** (secundario) | Cambiar de editor sin empezar de cero | `inject opencode antigravity` → `@session.md` en el chat |
+| **A — Team Relay** (principal) | Tu compañero continúa donde vos dejaste | `relay sync` → `git commit` → `git pull` → leer `HANDOFF.md` |
+| **B — Editor bridge** (secundario) | Cambiar de editor sin empezar de cero | `relay inject opencode antigravity` → `@session.md` en el chat |
 
-### Tupac vs `context.md` vs memoria de Cursor
+### Relay vs `context.md` vs memoria de Cursor
 
 - **`context.md` / `CLAUDE.md` / rules** = manual del proyecto (estable, curado, pequeño).
 - **Memoria nativa del editor** = optimizada dentro de *un* producto; no porta a Git ni a otro editor.
-- **Tupac** = bitácora de la sesión de IA + relay de equipo cifrado en el repo.
+- **Relay** = bitácora de la sesión de IA + relay de equipo cifrado en el repo.
 
-> *`context.md` dice cómo es el proyecto; Tupac preserva qué decidió la IA contigo ayer y lo deja continuar en otra máquina, otro editor u otra persona.*
+> *`context.md` dice cómo es el proyecto; Relay preserva qué decidió la IA contigo ayer y lo deja continuar en otra máquina, otro editor u otra persona.*
+
+> El binario `contextvc` sigue disponible como alias de `relay` por compatibilidad.
 
 ---
 
@@ -30,11 +34,11 @@ Cada editor (Cursor, OpenCode, Antigravity…) guarda el historial en formatos p
 **Requisitos:** Node 18+, [age](https://github.com/FiloSottile/age) (`brew install age`), repo Git.
 
 ```bash
-npm install -g contextvc   # o: npx contextvc
+npm install -g relay   # o: npx relay
 cd tu-proyecto && git init
-contextvc init
+relay init
 # … trabajá con tu IA …
-contextvc sync --handoff
+relay sync --handoff
 git add .ai-memory && git commit -m "chore: sync AI context"
 ```
 
@@ -42,14 +46,14 @@ Tu compañero:
 
 ```bash
 git pull
-cat .ai-memory/HANDOFF.md    # resumen legible
-contextvc decrypt .ai-memory/sessions/session-*.json.age  # transcript completo
+cat .ai-memory/HANDOFF.md
+relay decrypt .ai-memory/sessions/session-*.json.age  # transcript completo
 ```
 
 Hooks automáticos (opcional):
 
 ```bash
-contextvc install-hooks
+relay install-hooks
 ```
 
 ---
@@ -58,81 +62,54 @@ contextvc install-hooks
 
 | Comando | Descripción |
 |---------|-------------|
-| `init` | Wizard: encriptación, summarizer, estructura `.ai-memory/` |
-| `sync [--handoff]` | Extrae sesiones de editores → `.ai-memory/sessions/` |
-| `handoff [--from-repo]` | Genera `.ai-memory/HANDOFF.md` para el equipo |
+| `init` | Wizard: encriptación, summarizer, `.ai-memory/` |
+| `sync [--handoff]` | Extrae sesiones de editores → repo |
+| `handoff [--from-repo]` | Genera `.ai-memory/HANDOFF.md` |
 | `pull [editor]` | `opencode` \| `antigravity` \| `cursor` |
 | `inject <src> <dst>` | Migra sesión entre editores |
 | `status [--editor]` | Estado del repo y editores |
 | `install-hooks` | pre-commit + post-checkout/merge |
-| `team auto-add` | Añade SSH keys como destinatarios age |
-| `merge` / `decrypt` | Resolución de conflictos y lectura |
+| `team auto-add` | SSH keys → destinatarios age |
+| `merge` / `decrypt` | Conflictos y lectura |
 
-### Inyectar en Antigravity (flujo oficial)
+### Antigravity (flujo oficial)
 
 ```bash
-contextvc inject opencode antigravity
-# Copiar el @path que imprime el CLI y pegarlo en el chat
+relay inject opencode antigravity
+# Copiar el @path que imprime el CLI
 ```
 
-La sesión **no aparece en el panel lateral** de Antigravity (requiere `.pb` encriptados de ~6MB). El flujo soportado es **`@path`** al `session.md` generado.
+La sesión **no aparece en el panel lateral** (requiere `.pb` encriptados). Usar **`@path`** al `session.md` generado.
 
 ### Cursor
 
 ```bash
-contextvc pull cursor
-contextvc status --editor cursor --sessions
-contextvc inject cursor antigravity   # o inject opencode cursor
+relay pull cursor
+relay status --editor cursor --sessions
+relay inject cursor antigravity
 ```
 
-Lectura desde `~/.cursor/projects/<proyecto>/agent-transcripts/*.jsonl`. Inyección “soft” vía `@.ai-memory/cursor-import/session-*.md`.
+Lee `~/.cursor/projects/<proyecto>/agent-transcripts/*.jsonl`.
 
 ---
 
 ## Arquitectura
 
 ```
-Editores (OpenCode, Antigravity, Cursor)
-        ↓ readers
-   Formato estándar (JSON)
-        ↓ summarizer + age
-   .ai-memory/sessions/*.age
-        ↓ git
-   Equipo + HANDOFF.md
+Editores → readers → JSON estándar → age → .ai-memory/ → Git → HANDOFF.md
 ```
-
----
-
-## Estado del proyecto
-
-| Componente | Estado |
-|------------|--------|
-| Core (config, age, backup, logger) | ✅ |
-| OpenCode / Antigravity readers & injectors | ✅ |
-| Cursor reader + inject soft | ✅ |
-| `sync`, `status`, `handoff`, hooks | ✅ |
-| Panel lateral Antigravity | ❌ Won't fix — usar `@path` |
-| `jetskiStateSync` decode | ❌ Fuera de scope v1.x |
 
 ---
 
 ## Desarrollo
 
 ```bash
-npm install && npm run build && npm test
+git clone https://github.com/ticoxz/Relay.git
+cd Relay && npm install && npm run build && npm test
 ```
 
 ---
 
-## Roadmap
+## Licencia
 
-```
-v1.0.1 — Ship: docs, dedup sync, handoff, Cursor reader, npm
-v1.1   — Team relay polish, más tests de integración
-v1.2+  — Más editores, file-watcher (si hay demanda)
-v2.0   — Dashboard / servidor (solo con tracción)
-```
-
----
-
-*Marcelo Miranda — [github.com/anomalyco/tupac](https://github.com/anomalyco/tupac)*
+MIT — Marcelo Miranda

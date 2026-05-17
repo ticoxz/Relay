@@ -10,9 +10,9 @@ Cuando codeas con un asistente de IA (OpenCode, Cursor, Antigravity, Copilot), c
 
 **El problema:** Ese contexto vive en archivos locales ocultos del editor. Si cambias de máquina, cerrás el editor, o le pasás el ticket a un compañero, todo eso se pierde. Tu compañero no sabe en qué estabas, qué se decidió, ni por dónde seguir.
 
-**La solución:** `contextvc` extrae ese historial, lo comprime (summarizer local u OpenAI), lo encripta con las SSH keys del equipo, y lo sincroniza a través de Git. Tu compañero hace `git pull`, lee `.ai-memory/HANDOFF.md` y puede continuar exactamente donde vos dejaste.
+**La solución:** `relay` extrae ese historial, lo comprime (summarizer local u OpenAI), lo encripta con las SSH keys del equipo, y lo sincroniza a través de Git. Tu compañero hace `git pull`, lee `.ai-memory/HANDOFF.md` y puede continuar exactamente donde vos dejaste.
 
-**No es lo mismo que `context.md`:** ese archivo define el proyecto; Tupac preserva la *sesión* de IA (decisiones del chat, no solo convenciones estáticas).
+**No es lo mismo que `context.md`:** ese archivo define el proyecto; Relay preserva la *sesión* de IA (decisiones del chat, no solo convenciones estáticas).
 
 ---
 
@@ -33,7 +33,7 @@ Cuando codeas con un asistente de IA (OpenCode, Cursor, Antigravity, Copilot), c
 │                      PLUGIN / READER                                │
 │                                                                      │
 │   Detecta cambios en el storage del editor.                         │
-│   Convierte sesiones al formato estándar de contextvc:               │
+│   Convierte sesiones al formato estándar de relay:               │
 │   { id, timestamp, messages[], metadata }                           │
 │                                                                      │
 │   Implementaciones existentes:                                       │
@@ -77,7 +77,7 @@ Cuando codeas con un asistente de IA (OpenCode, Cursor, Antigravity, Copilot), c
 │                                                                      │
  │   Flujo silencioso:                                                │
  │   1. Detecta evento pre-commit                                     │
- │   2. Corre `contextvc sync` en modo automático                    │
+ │   2. Corre `relay sync` en modo automático                    │
  │   3. Extrae sesiones, resume, encripta                             │
  │   4. Hace `git add` de los archivos .age                          │
  │   5. Continúa con el commit normal                                │
@@ -191,7 +191,7 @@ src/summarizer/types.ts
 ### Fase 4: Conflict Resolution ✅
 **Objetivo:** Resolver choques cuando dos devs editan la misma sesión.
 
-- `contextvc merge <ours.age> <theirs.age>` intelligent merge
+- `relay merge <ours.age> <theirs.age>` intelligent merge
 - Desencripta ambas versiones, fusiona mensajes cronológicamente
 
 **Archivos creados:**
@@ -203,9 +203,9 @@ src/cli/commands/merge.ts
 ### Fase 5: Git Hooks Automatizados ✅
 **Objetivo:** Fricción cero.
 
-- Comando `contextvc install-hooks`
+- Comando `relay install-hooks`
 - Genera script `.git/hooks/pre-commit`
-- Hook ejecuta `contextvc sync` automáticamente
+- Hook ejecuta `relay sync` automáticamente
 
 **Archivos creados:**
 ```
@@ -230,7 +230,7 @@ src/cli/commands/install-hooks.ts
 - ✅ El archivo `session_summary.md`
 - ✅ El archivo `.system_generated/logs/overview.txt`
 - ✅ El annotation file en `~/.gemini/antigravity/annotations/`
-- ✅ CLI de contextvc para migrate sesiones
+- ✅ CLI de relay para migrate sesiones
 
 **Lo que NO funciona:**
 - ❌ La sesión no aparece en la lista de Antigravity
@@ -306,24 +306,24 @@ jest.config.js
 ## 5. Estructura Actual del Proyecto
 
 ```
-tupac/
+relay/
 ├── doc.md                          # Este documento
 ├── README.md                       # Documentación de uso
-├── package.json                    # contextvc@1.0.0
+├── package.json                    # relay@1.0.0
 ├── tsconfig.json
 ├── jest.config.js                   # Configuración de tests
 ├── src/
 │   ├── cli/
 │   │   ├── index.ts                # Entry point CLI
 │   │   └── commands/
-│   │       ├── init.ts             # npx contextvc init (wizard interactivo)
-│   │       ├── sync.ts             # npx contextvc sync
-│   │       ├── decrypt.ts          # npx contextvc decrypt <file>
-│   │       ├── merge.ts            # npx contextvc merge <a> <b> <r>
-│   │       ├── team.ts             # npx contextvc team add/auto-add/list
-│   │       ├── status.ts           # npx contextvc status
-│   │       ├── install-hooks.ts    # npx contextvc install-hooks
-│   │       └── inject.ts           # npx contextvc inject <source> <target>
+│   │       ├── init.ts             # npx relay init (wizard interactivo)
+│   │       ├── sync.ts             # npx relay sync
+│   │       ├── decrypt.ts          # npx relay decrypt <file>
+│   │       ├── merge.ts            # npx relay merge <a> <b> <r>
+│   │       ├── team.ts             # npx relay team add/auto-add/list
+│   │       ├── status.ts           # npx relay status
+│   │       ├── install-hooks.ts    # npx relay install-hooks
+│   │       └── inject.ts           # npx relay inject <source> <target>
 │   ├── core/
 │   │   ├── config.ts               # Gestor de configuración (config.json)
 │   │   ├── logger.ts               # Logger con feedback visual (chalk)
@@ -368,41 +368,41 @@ tupac/
 
 ```bash
 # Inicializar el proyecto (wizard interactivo)
-npx contextvc init
-npx contextvc init --yes          # Modo automático con defaults
+npx relay init
+npx relay init --yes          # Modo automático con defaults
 
 # Sincronizar sesiones locales → repo
-npx contextvc sync
+npx relay sync
 
 # Ver estado actual (dashboard CLI)
-npx contextvc status
-npx contextvc status --json       # Formato JSON
+npx relay status
+npx relay status --json       # Formato JSON
 
 # Ver historial de sesiones
-npx contextvc log
+npx relay log
 
 # Desencriptar y leer un archivo
-npx contextvc decrypt .ai-memory/sessions/session-xyz.json.age
+npx relay decrypt .ai-memory/sessions/session-xyz.json.age
 
 # Resolver conflicto de merge
-npx contextvc merge .ai-memory/sessions/ours.age .ai-memory/sessions/theirs.age .ai-memory/sessions/resolved.age
+npx relay merge .ai-memory/sessions/ours.age .ai-memory/sessions/theirs.age .ai-memory/sessions/resolved.age
 
 # Gestión de equipo
-npx contextvc team add "ssh-ed25519 AAAAC3...tu-llave@equipo"   # Añadir llave manual
-npx contextvc team auto-add                                          # Detectar y añadir SSH keys automáticamente
-npx contextvc team list                                              # Ver destinatarios autorizados
+npx relay team add "ssh-ed25519 AAAAC3...tu-llave@equipo"   # Añadir llave manual
+npx relay team auto-add                                          # Detectar y añadir SSH keys automáticamente
+npx relay team list                                              # Ver destinatarios autorizados
 
 # Instalar Git hooks (auto-sync en cada commit)
-npx contextvc install-hooks
+npx relay install-hooks
 
 # Migrar sesión de un editor a otro
-npx contextvc inject opencode antigravity   # OpenCode → Antigravity
-npx contextvc inject antigravity opencode   # Antigravity → OpenCode
+npx relay inject opencode antigravity   # OpenCode → Antigravity
+npx relay inject antigravity opencode   # Antigravity → OpenCode
 
 # Pull sesiones de un editor específico
-npx contextvc pull              # Ambos editores
-npx contextvc pull antigravity   # Solo Antigravity
-npx contextvc pull opencode      # Solo OpenCode
+npx relay pull              # Ambos editores
+npx relay pull antigravity   # Solo Antigravity
+npx relay pull opencode      # Solo OpenCode
 ```
 
 ---
@@ -455,7 +455,7 @@ AGE_RECIPIENTS_FILE=./.ai-memory/recipients.txt  # Auto-configurada
 
 - `.gitignore`, empaquetado npm, README alineado
 - `sync` con dedup por `session.id`
-- `contextvc handoff` → `.ai-memory/HANDOFF.md`
+- `relay handoff` → `.ai-memory/HANDOFF.md`
 - Hooks: `pre-commit`, `post-checkout`, `post-merge`
 - Cursor reader (`agent-transcripts/*.jsonl`)
 - `inject --session` corregido para Antigravity
@@ -503,7 +503,7 @@ AGE_RECIPIENTS_FILE=./.ai-memory/recipients.txt  # Auto-configurada
 
 | Término | Definición |
 |---|---|
-| **contextvc** | Nombre del proyecto/CLI. "Context Version Control." |
+| **relay** | Nombre del proyecto/CLI. "Context Version Control." |
 | **Smart Pruning** | El proceso de usar un LLM (o heurística) para resumir sesiones largas. |
 | **Modular Summarizer** | Componente que puede usar OpenAI, resumen local, o nada según la config. |
 | **Adaptador** | Componente que convierte sesiones de un editor específico al formato estándar. |
@@ -524,11 +524,11 @@ Las sesiones injectadas existen en `brain/<uuid>/session.md` pero **no** aparece
 
 **Causa:** índice en protobuf encriptado (`jetskiStateSync`). No es bloqueante.
 
-**Flujo oficial:** `contextvc inject …` → copiar `@path` al chat de Antigravity.
+**Flujo oficial:** `relay inject …` → copiar `@path` al chat de Antigravity.
 
-### Tupac vs context.md
+### Relay vs context.md
 
-| | context.md / CLAUDE.md | Tupac |
+| | context.md / CLAUDE.md | Relay |
 |--|------------------------|-------|
 | Contenido | Convenciones del repo | Transcript / resumen de sesión |
 | Tamaño | Pequeño, curado | Grande → resumido + cifrado |

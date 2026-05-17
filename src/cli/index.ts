@@ -14,9 +14,9 @@ import { handoffCommand } from './commands/handoff';
 const program = new Command();
 
 program
-  .name('contextvc')
-  .description('Context Version Control - Sincroniza el contexto de tu IA con tu código')
-  .version('1.0.1');
+  .name('relay')
+  .description('Relay — Git para sesiones de IA entre editores y tu equipo')
+  .version('1.1.0');
 
 program.addCommand(initCommand);
 program.addCommand(syncCommand);

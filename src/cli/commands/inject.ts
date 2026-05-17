@@ -126,7 +126,7 @@ async function performInjection(session: OpenCodeSession, target: string) {
     const conversationId = OpenCodeInjector.injectSession(session);
     console.log('✅ Sesión inyectada en OpenCode.');
     console.log(`   Session ID: ${conversationId}`);
-    console.log('   contextvc status --editor opencode');
+    console.log('   relay status --editor opencode');
     return;
   }
 
@@ -151,7 +151,7 @@ export const pullCommand = new Command('pull')
     const memoryDir = path.join(process.cwd(), '.ai-memory', 'sessions');
 
     if (!fs.existsSync(memoryDir)) {
-      console.error('❌ .ai-memory/sessions no existe. Ejecuta "contextvc init" primero.');
+      console.error('❌ .ai-memory/sessions no existe. Ejecuta "relay init" primero.');
       return;
     }
 
@@ -194,7 +194,7 @@ export const pushCommand = new Command('push')
     const memoryDir = path.join(process.cwd(), '.ai-memory', 'sessions');
 
     if (!fs.existsSync(memoryDir)) {
-      console.error('❌ .ai-memory/sessions no existe. Ejecuta "contextvc init" primero.');
+      console.error('❌ .ai-memory/sessions no existe. Ejecuta "relay init" primero.');
       return;
     }
 
@@ -208,11 +208,11 @@ export const pushCommand = new Command('push')
 
     for (const ed of editors) {
       if (ed === 'antigravity') {
-        console.log('  contextvc inject opencode antigravity  # luego @path en Antigravity');
+        console.log('  relay inject opencode antigravity  # luego @path en Antigravity');
       } else if (ed === 'opencode') {
-        console.log('  contextvc inject antigravity opencode');
+        console.log('  relay inject antigravity opencode');
       } else if (ed === 'cursor') {
-        console.log('  contextvc inject opencode cursor  # luego @.ai-memory/cursor-import/...');
+        console.log('  relay inject opencode cursor  # luego @.ai-memory/cursor-import/...');
       }
     }
   });

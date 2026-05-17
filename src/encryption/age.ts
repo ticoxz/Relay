@@ -37,7 +37,7 @@ export class AgeEncryption {
   static encrypt(content: string, outputPath: string): void {
     const recipientsFile = this.getRecipientsFile();
     if (!fs.existsSync(recipientsFile)) {
-      throw new Error('No se han configurado destinatarios. Ejecuta "contextvc team add" primero.');
+      throw new Error('No se han configurado destinatarios. Ejecuta "relay team add" primero.');
     }
 
     const tempInput = path.join(os.tmpdir(), `cvc-${Date.now()}.json`);

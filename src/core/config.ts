@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 
-export interface ContextVCConfig {
+export interface RelayConfig {
   version: string;
   encryption: {
     enabled: boolean;
@@ -22,8 +22,11 @@ export interface ContextVCConfig {
   initializedAt: string;
 }
 
-const DEFAULT_CONFIG: ContextVCConfig = {
-  version: '1.0.0',
+/** @deprecated Use RelayConfig */
+export type ContextVCConfig = RelayConfig;
+
+const DEFAULT_CONFIG: RelayConfig = {
+  version: '1.1.0',
   encryption: {
     enabled: true,
     recipientsFile: './.ai-memory/recipients.txt',
@@ -45,7 +48,7 @@ export class ConfigManager {
     return path.join(process.cwd(), this.CONFIG_FILE);
   }
 
-  static load(): ContextVCConfig | null {
+  static load(): RelayConfig | null {
     try {
       const configPath = this.getConfigPath();
       if (!fs.existsSync(configPath)) return null;
@@ -57,12 +60,12 @@ export class ConfigManager {
     }
   }
 
-  static save(config: ContextVCConfig): void {
+  static save(config: RelayConfig): void {
     const configPath = this.getConfigPath();
     fs.writeFileSync(configPath, JSON.stringify(config, null, 2), 'utf-8');
   }
 
-  static init(overrides?: Partial<ContextVCConfig>): ContextVCConfig {
+  static init(overrides?: Partial<RelayConfig>): RelayConfig {
     const config = { ...DEFAULT_CONFIG, ...overrides, initializedAt: new Date().toISOString() };
     const configPath = this.getConfigPath();
     fs.mkdirSync(path.dirname(configPath), { recursive: true });
@@ -70,7 +73,7 @@ export class ConfigManager {
     return config;
   }
 
-  static update(updates: Partial<ContextVCConfig>): ContextVCConfig {
+  static update(updates: Partial<RelayConfig>): RelayConfig {
     const current = this.load() || DEFAULT_CONFIG;
     const config = { ...current, ...updates, encryption: { ...current.encryption, ...updates.encryption }, summarizer: { ...current.summarizer, ...updates.summarizer } };
     this.save(config);
