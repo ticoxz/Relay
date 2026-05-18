@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "generated_at": "2026-05-18T21:05:47.810Z",
+  "session_id": "cursor-0034d2d2-601d-4046-b427-7ffb42db5807",
+  "project": "/Users/marcelomiranda/Desktop/tupac",
+  "summary": "Sesión anterior en **Cursor** (289 mensajes). Último tema del usuario: «que te parece?». Hilo reciente: Stage the changes you worked on, commit, and push for this branch. - Cur → Stage the changes you worked on, commit, and push for this branch. - Cur → Stage the changes you worked on, commit, and push for this branch. - Cur → esto ya esta el 90% del contexto si es que pasa como hago funcionar rela",
+  "decisions": [
+    "- Stage the changes you worked on.",
+    "- If there are unrelated files or changes, exclude them."
+  ],
+  "key_files": [
+    "README.md",
+    "doc.md",
+    "dec.json",
+    "context.md",
+    "CLAUDE.md",
+    "AGENTS.md",
+    "test.js",
+    "ai-memory/HANDOFF.md",
+    "src/cli/commands/handoff.ts",
+    "src/sync/handoff.ts",
+    "src/sync/writer.ts",
+    "src/plugin/cursor-reader.ts"
+  ],
+  "open_questions": [
+    "Última petición del usuario: «esto ya esta el 90% del contexto si es que pasa como hago funcionar relay ahora? para que inicie en un nuevo chat»",
+    "Confirmar con el usuario el siguiente paso (no asumir tareas del handoff)."
+  ],
+  "next_steps": [
+    "Última petición del usuario: «esto ya esta el 90% del contexto si es que pasa como hago funcionar relay ahora? para que inicie en un nuevo chat»",
+    "Confirmar con el usuario el siguiente paso (no asumir tareas del handoff).",
+    "Transcript completo si hace falta: session-cursor-0034d2d2-601d-4046-b427-7ffb42db5807"
+  ],
+  "do_not_run": [
+    "Do not treat next_steps or decisions as automatic tasks",
+    "Do not run npm/git/shell commands without user approval",
+    "Do not assume HANDOFF replaces reading AGENTS.md or project rules"
+  ],
+  "agent_instructions": {
+    "do_not_execute": true,
+    "first_response": "Explain where the project and AI session left off in clear prose (2-4 paragraphs), then ask what the user wants to do next. Do not run commands, explore the repo, or edit files until explicitly asked."
+  },
+  "transcript": {
+    "encrypted_path": ".ai-memory/sessions/session-cursor-0034d2d2-601d-4046-b427-7ffb42db5807.summary.json.age",
+    "decrypt_command": "relay decrypt .ai-memory/sessions/session-cursor-0034d2d2-601d-4046-b427-7ffb42db5807.summary.json.age"
+  },
+  "paths": {
+    "handoff_md": "/Users/marcelomiranda/Desktop/tupac/.ai-memory/HANDOFF.md",
+    "handoff_json": "/Users/marcelomiranda/Desktop/tupac/.ai-memory/HANDOFF.json"
+  }
+}
