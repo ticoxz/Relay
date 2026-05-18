@@ -111,17 +111,21 @@ The `contextvc` binary alias is kept for backward compatibility.
 
 ## Install
 
-**Requirements:** Node 18+, [age](https://github.com/FiloSottile/age) (`brew install age` on macOS), Git.
+**Requirements:** Node 18+, [pnpm](https://pnpm.io/installation) (via Corepack: `corepack enable`), [age](https://github.com/FiloSottile/age) (`brew install age` on macOS), Git.
 
 ```bash
-npm install -g @ticoxz/relay
+corepack enable
+pnpm add -g @ticoxz/relay
 ```
+
+npm also works: `npm install -g @ticoxz/relay` (same package on the npm registry).
 
 **From source:**
 
 ```bash
 git clone https://github.com/ticoxz/Relay.git && cd Relay
-npm install && npm run build && npm link
+corepack enable
+pnpm install && pnpm run build && pnpm link --global
 ```
 
 ---
@@ -299,8 +303,10 @@ Do not approve or run CI — checklist only.
 ## Development
 
 ```bash
-npm run build && npm test
-npm publish --access public   # package: @ticoxz/relay
+corepack enable
+pnpm install
+pnpm run build && pnpm test
+pnpm publish --access public   # publishes to npm registry; package: @ticoxz/relay
 ```
 
 ---

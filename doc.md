@@ -459,7 +459,7 @@ AGE_RECIPIENTS_FILE=./.ai-memory/recipients.txt  # Auto-configurada
 - VS Code Copilot reader + `inject` bridge
 - GitHub Action: comentario en PR si cambia `HANDOFF.md`
 - CLI UX: banners, `relay handoff --for-agent`, `relay doctor`
-- Paquete npm: `@ticoxz/relay@1.3.0`
+- Paquete `@ticoxz/relay@1.3.0` (pnpm/npm registry)
 
 ### v1.3.x — Fricción cero (en curso)
 
@@ -471,7 +471,7 @@ AGE_RECIPIENTS_FILE=./.ai-memory/recipients.txt  # Auto-configurada
 
 ### v1.4 — Team relay (próximo)
 
-- Adopción npm + tag estable en Action (`@v1.3.0`)
+- Adopción pnpm/npm + tag estable en Action (`@v1.3.0`)
 - Plantillas onboarding/reviewer en README (hecho)
 - Métricas manuales: PRs con diff en HANDOFF, downloads npm
 
@@ -481,7 +481,7 @@ AGE_RECIPIENTS_FILE=./.ai-memory/recipients.txt  # Auto-configurada
 
 Profundizar MCP solo si hay adopción real (configurado y usado >1/semana) o integración CI/SDK que requiera JSON.
 
-**Kill switch (90 días post `npm publish` 1.3.0):** si no hay uso de MCP/`HANDOFF.json` y solo se usa `.md` + `@`, congelar nuevas tools MCP e invertir en readers + `doctor` + docs.
+**Kill switch (90 días post publish 1.3.0 en registry):** si no hay uso de MCP/`HANDOFF.json` y solo se usa `.md` + `@`, congelar nuevas tools MCP e invertir en readers + `doctor` + docs.
 
 ### Fuera de scope v1.x
 

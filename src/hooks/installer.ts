@@ -3,14 +3,16 @@ import path from 'path';
 
 const RELAY_DETECT = `
   local RELAY_CMD
-  if npx --no-install relay --version >/dev/null 2>&1; then
-    RELAY_CMD="npx --no-install relay"
-  elif command -v relay >/dev/null 2>&1; then
+  if command -v relay >/dev/null 2>&1; then
     RELAY_CMD="relay"
-  elif npx --no-install contextvc --version >/dev/null 2>&1; then
-    RELAY_CMD="npx --no-install contextvc"
   elif command -v contextvc >/dev/null 2>&1; then
     RELAY_CMD="contextvc"
+  elif command -v pnpm >/dev/null 2>&1 && pnpm exec relay --version >/dev/null 2>&1; then
+    RELAY_CMD="pnpm exec relay"
+  elif npx --no-install relay --version >/dev/null 2>&1; then
+    RELAY_CMD="npx --no-install relay"
+  elif npx --no-install contextvc --version >/dev/null 2>&1; then
+    RELAY_CMD="npx --no-install contextvc"
   else
     return 0
   fi

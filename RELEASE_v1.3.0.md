@@ -14,7 +14,8 @@
 ## Install
 
 ```bash
-npm install -g @ticoxz/relay
+corepack enable
+pnpm add -g @ticoxz/relay
 cd your-project && relay init && relay sync --handoff
 ```
 
