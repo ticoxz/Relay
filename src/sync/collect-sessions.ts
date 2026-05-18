@@ -3,6 +3,11 @@ import { AntigravityReader } from '../plugin/antigravity-reader';
 import { CursorReader } from '../plugin/cursor-reader';
 import { VSCodeReader } from '../plugin/vscode-reader';
 import { EditorKey, Logger } from '../core/logger';
+import {
+  filterSessionsByProject,
+  latestSessionForProject,
+  sortSessionsNewestFirst,
+} from './project-filter';
 
 export interface CollectSessionsOptions {
   /** Si true, importa todo el historial de cada editor. Por defecto: solo la más reciente por editor. */
@@ -16,18 +21,26 @@ export interface CollectSessionsResult {
   stats: { opencode: number; antigravity: number; cursor: number; vscode: number };
 }
 
-async function collectOpenCode(all: boolean, onEditor?: CollectSessionsOptions['onEditor']): Promise<{ sessions: OpenCodeSession[]; count: number }> {
+async function collectOpenCode(
+  all: boolean,
+  projectPath: string,
+  onEditor?: CollectSessionsOptions['onEditor']
+): Promise<{ sessions: OpenCodeSession[]; count: number }> {
   onEditor?.('opencode', 'active');
-  const opencode = await readOpenCodeSessions();
+  const allOpenCode = await readOpenCodeSessions();
+  const opencode = sortSessionsNewestFirst(
+    filterSessionsByProject(allOpenCode, projectPath)
+  );
   if (all) {
     onEditor?.('opencode', opencode.length ? 'ok' : 'skip', opencode.length ? `${opencode.length} sesión(es)` : 'sin sesiones');
     return { sessions: opencode, count: opencode.length };
   }
-  if (opencode.length > 0) {
-    onEditor?.('opencode', 'ok', 'última sesión');
-    return { sessions: [opencode[opencode.length - 1]], count: 1 };
+  const latest = opencode[0];
+  if (latest) {
+    onEditor?.('opencode', 'ok', 'última sesión del proyecto');
+    return { sessions: [latest], count: 1 };
   }
-  onEditor?.('opencode', 'skip', 'sin sesiones');
+  onEditor?.('opencode', 'skip', 'sin sesiones para este proyecto');
   return { sessions: [], count: 0 };
 }
 
@@ -107,7 +120,7 @@ export async function collectSessionsForSync(
   const sessions: OpenCodeSession[] = [];
   const all = !!options.all;
 
-  const oc = await collectOpenCode(all, options.onEditor);
+  const oc = await collectOpenCode(all, projectPath, options.onEditor);
   sessions.push(...oc.sessions);
   stats.opencode = oc.count;
 

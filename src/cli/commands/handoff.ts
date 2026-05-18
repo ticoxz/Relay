@@ -2,6 +2,7 @@ import { Command } from 'commander';
 import { generateHandoff, readHandoffJson } from '../../sync/handoff';
 import { buildAgentPrompt } from '../../sync/handoff-build';
 import { readOpenCodeSessions } from '../../plugin/storage-reader';
+import { latestSessionForProject } from '../../sync/project-filter';
 import { AntigravityReader } from '../../plugin/antigravity-reader';
 import { CursorReader } from '../../plugin/cursor-reader';
 import { VSCodeReader } from '../../plugin/vscode-reader';
@@ -26,19 +27,20 @@ export const handoffCommand = new Command('handoff')
       }
 
       let session = undefined;
+      const projectPath = process.cwd();
 
       if (options.editor) {
         if (!options.quiet) Logger.phase('🔍', `Leyendo ${options.editor}`);
 
         if (options.editor === 'opencode') {
           const sessions = await readOpenCodeSessions();
-          session = sessions[sessions.length - 1];
+          session = latestSessionForProject(sessions, projectPath) || undefined;
         } else if (options.editor === 'antigravity') {
           session = (await AntigravityReader.readLatestSession()) || undefined;
         } else if (options.editor === 'cursor') {
-          session = (await CursorReader.readLatestSession()) || undefined;
+          session = (await CursorReader.readLatestSession(projectPath)) || undefined;
         } else if (options.editor === 'vscode') {
-          session = (await VSCodeReader.readLatestSession()) || undefined;
+          session = (await VSCodeReader.readLatestSession(projectPath)) || undefined;
         } else {
           Logger.error('Editor desconocido. Usa: opencode | antigravity | cursor | vscode');
           process.exit(1);

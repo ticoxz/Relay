@@ -11,6 +11,7 @@ import { CursorReader } from '../../plugin/cursor-reader';
 import { VSCodeReader } from '../../plugin/vscode-reader';
 import { AntigravityReader } from '../../plugin/antigravity-reader';
 import { readOpenCodeSessions } from '../../plugin/storage-reader';
+import { filterSessionsByProject } from '../../sync/project-filter';
 
 type CheckStatus = 'ok' | 'warn' | 'fail';
 
@@ -58,7 +59,7 @@ async function countEditorSessions(): Promise<Record<string, number>> {
 
   try {
     const oc = await readOpenCodeSessions();
-    counts.opencode = oc?.length ?? 0;
+    counts.opencode = filterSessionsByProject(oc, cwd).length;
   } catch {
     counts.opencode = 0;
   }

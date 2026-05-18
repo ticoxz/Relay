@@ -154,7 +154,7 @@ git add .ai-memory/HANDOFF.md .ai-memory/HANDOFF.json .ai-memory/config.json .ai
 git commit -m "chore: AI handoff"
 ```
 
-By default, `sync` imports only the **latest session per editor** (fast). Use `relay sync --all` for full history.
+By default, `sync` imports only the **latest session per editor for this repo** (fast). OpenCode/Cursor are filtered by project path so personal and work repos do not mix. Use `relay sync --all` for full history.
 
 ---
 

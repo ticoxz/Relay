@@ -6,6 +6,10 @@ import { ConfigManager } from '../../core/config';
 import { Logger } from '../../core/logger';
 import { AgeEncryption } from '../../encryption/age';
 import { readOpenCodeSessions } from '../../plugin/storage-reader';
+import {
+  filterSessionsByProject,
+  sortSessionsNewestFirst,
+} from '../../sync/project-filter';
 import { AntigravityReader } from '../../plugin/antigravity-reader';
 import { CursorReader } from '../../plugin/cursor-reader';
 import { VSCodeReader } from '../../plugin/vscode-reader';
@@ -79,20 +83,37 @@ async function showEditorStatus(editor: string, showSessions: boolean) {
 
   if (editor === 'opencode') {
     Logger.header('📊 OpenCode Sessions');
-    const sessions = await readOpenCodeSessions();
-    console.log(`\n  Sesiones encontradas: ${sessions.length}`);
+    const projectPath = process.cwd();
+    const allSessions = await readOpenCodeSessions();
+    const sessions = sortSessionsNewestFirst(
+      filterSessionsByProject(allSessions, projectPath)
+    );
+    console.log(`\n  Proyecto: ${projectPath}`);
+    console.log(`  Sesiones de este proyecto: ${sessions.length} (de ${allSessions.length} en disco)`);
     console.log(`  Ubicación: ~/.local/share/opencode/opencode.db`);
 
-    if (showSessions && sessions.length > 0) {
-      console.log(`\n${'Sesiones recientes:'}`);
-      sessions.slice(-5).forEach((s: any, i: number) => {
-        const date = new Date(s.createdAt).toLocaleString();
-        const msgs = s.messages?.length || 0;
-        console.log(`  ${i + 1}. [${date}] ${s.title?.substring(0, 50) || s.messages?.[0]?.content?.substring(0, 40) || 'Sin título'}... (${msgs} msgs)`);
-      });
-
-      console.log(`\n  Para inyectar a Antigravity:`);
-      console.log(`  relay inject opencode antigravity`);
+    if (showSessions) {
+      if (sessions.length > 0) {
+        console.log(`\n${'Sesiones recientes (este repo):'}`);
+        sessions.slice(0, 10).forEach((s: any, i: number) => {
+          const date = new Date(s.createdAt).toLocaleString();
+          const msgs = s.messages?.length || 0;
+          const title =
+            s.title?.substring(0, 45) ||
+            s.messages?.[0]?.content?.substring(0, 40) ||
+            'Sin título';
+          const idShort = s.id.length > 20 ? `${s.id.substring(0, 18)}…` : s.id;
+          console.log(
+            `  ${i + 1}. [${date}] ${msgs} msgs · ${idShort}\n     ${title}`
+          );
+        });
+        console.log(`\n  Inyectar última → Cursor:`);
+        console.log(`  relay inject opencode cursor`);
+        console.log(`  relay inject opencode cursor --session ${sessions[0].id}`);
+      } else {
+        console.log(`\n  Sin sesiones OpenCode para este proyecto.`);
+        console.log(`  Abrí el repo en OpenCode, chateá, y volvé a correr este comando.`);
+      }
     }
   } else if (editor === 'antigravity') {
     Logger.header('📊 Antigravity Sessions');

@@ -3,6 +3,10 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import { readOpenCodeSessions, OpenCodeSession } from '../../plugin/storage-reader';
+import {
+  findSessionById,
+  latestSessionForProject,
+} from '../../sync/project-filter';
 import { AntigravityReader } from '../../plugin/antigravity-reader';
 import { AntigravityInjector } from '../../plugin/antigravity-injector';
 import { OpenCodeInjector } from '../../plugin/opencode-injector';
@@ -45,11 +49,15 @@ export const injectCommand = new Command('inject')
     }
   });
 
-async function resolveSession(source: string, sessionId?: string): Promise<OpenCodeSession | null> {
+async function resolveSession(
+  source: string,
+  sessionId?: string,
+  projectPath: string = process.cwd()
+): Promise<OpenCodeSession | null> {
   if (source === 'opencode') {
     const sessions = await readOpenCodeSessions();
-    if (sessionId) return sessions.find(s => s.id === sessionId) || null;
-    return sessions.length > 0 ? sessions[sessions.length - 1] : null;
+    if (sessionId) return findSessionById(sessions, sessionId, projectPath);
+    return latestSessionForProject(sessions, projectPath);
   }
   if (source === 'antigravity') {
     return sessionId
@@ -57,10 +65,14 @@ async function resolveSession(source: string, sessionId?: string): Promise<OpenC
       : AntigravityReader.readLatestSession();
   }
   if (source === 'cursor') {
-    return sessionId ? CursorReader.readSessionById(sessionId) : CursorReader.readLatestSession();
+    return sessionId
+      ? CursorReader.readSessionById(sessionId, projectPath)
+      : CursorReader.readLatestSession(projectPath);
   }
   if (source === 'vscode') {
-    return sessionId ? VSCodeReader.readSessionById(sessionId) : VSCodeReader.readLatestSession();
+    return sessionId
+      ? VSCodeReader.readSessionById(sessionId, projectPath)
+      : VSCodeReader.readLatestSession(projectPath);
   }
   return null;
 }
@@ -68,7 +80,9 @@ async function resolveSession(source: string, sessionId?: string): Promise<OpenC
 async function injectLatestSession(source: string, target: string) {
   Logger.phase('🔍', `Buscando última sesión en ${editorLabel(source)}`);
 
-  const session = await Logger.withSpinner('Leyendo sesión', () => resolveSession(source));
+  const session = await Logger.withSpinner('Leyendo sesión', () =>
+    resolveSession(source, undefined, process.cwd())
+  );
 
   if (!session) {
     Logger.warn(`No hay sesiones en ${editorLabel(source)}.`);
@@ -83,7 +97,9 @@ async function injectLatestSession(source: string, target: string) {
 async function injectSpecificSession(source: string, target: string, sessionId: string) {
   Logger.phase('🔍', `Buscando ${sessionId} en ${editorLabel(source)}`);
 
-  const session = await Logger.withSpinner('Leyendo sesión', () => resolveSession(source, sessionId));
+  const session = await Logger.withSpinner('Leyendo sesión', () =>
+    resolveSession(source, sessionId, process.cwd())
+  );
 
   if (!session) {
     Logger.error(`Sesión ${sessionId} no encontrada en ${editorLabel(source)}.`);

@@ -23,7 +23,7 @@ function textResult(text: string) {
 
 export function createRelayMcpServer(): Server {
   const server = new Server(
-    { name: 'relay', version: '1.3.1' },
+    { name: 'relay', version: '1.3.2' },
     { capabilities: { tools: {} } }
   );
 

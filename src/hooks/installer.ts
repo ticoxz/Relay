@@ -47,7 +47,25 @@ const POST_MERGE_HOOK_CONTENT = POST_CHECKOUT_HOOK_CONTENT.replace(
   'relay_post_merge'
 );
 
-const HOOK_MARKERS = ['relay automation', 'contextvc automation'];
+/** Remove Cursor IDE co-author trailer from commit messages */
+const PREPARE_COMMIT_MSG_HOOK = `
+# --- relay: strip Cursor co-author ---
+strip_cursor_coauthor() {
+  MSG_FILE="$1"
+  [ -f "$MSG_FILE" ] || return 0
+  if sed --version 2>/dev/null | grep -q GNU; then
+    sed -i '/^Co-authored-by: Cursor <cursoragent@cursor.com>$/d' "$MSG_FILE"
+  else
+    sed -i '' '/^Co-authored-by: Cursor <cursoragent@cursor.com>$/d' "$MSG_FILE"
+  fi
+  return 0
+}
+
+strip_cursor_coauthor "$1"
+# --- end ---
+`;
+
+const HOOK_MARKERS = ['relay automation', 'contextvc automation', 'strip Cursor co-author'];
 
 export class HookInstaller {
   private static hasRelayHook(content: string): boolean {
@@ -96,8 +114,14 @@ export class HookInstaller {
     if (process.stdout.isTTY) console.log('  ✅ Git hook post-merge instalado.');
   }
 
+  static installPrepareCommitMsg(): void {
+    this.appendOrCreateHook('prepare-commit-msg', PREPARE_COMMIT_MSG_HOOK);
+    if (process.stdout.isTTY) console.log('  ✅ Git hook prepare-commit-msg (sin Co-authored-by Cursor).');
+  }
+
   static installAll(): void {
     this.installPreCommit();
+    this.installPrepareCommitMsg();
     this.installPostCheckout();
     this.installPostMerge();
   }
