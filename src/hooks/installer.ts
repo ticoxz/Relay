@@ -9,10 +9,6 @@ const RELAY_DETECT = `
     RELAY_CMD="contextvc"
   elif command -v pnpm >/dev/null 2>&1 && pnpm exec relay --version >/dev/null 2>&1; then
     RELAY_CMD="pnpm exec relay"
-  elif npx --no-install relay --version >/dev/null 2>&1; then
-    RELAY_CMD="npx --no-install relay"
-  elif npx --no-install contextvc --version >/dev/null 2>&1; then
-    RELAY_CMD="npx --no-install contextvc"
   else
     return 0
   fi

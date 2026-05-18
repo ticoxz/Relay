@@ -15,9 +15,11 @@
 
 ```bash
 corepack enable
-pnpm add -g @ticoxz/relay
+pnpm add -g @ticoxz/relay@1.3.0
 cd your-project && relay init && relay sync --handoff
 ```
+
+Or build from Git: see [docs/INSTALL.md](docs/INSTALL.md).
 
 ## New chat (recommended)
 

@@ -20,7 +20,7 @@ Settings → MCP:
 }
 ```
 
-Requires `relay-mcp` on PATH (`pnpm add -g @ticoxz/relay` or `npm i -g @ticoxz/relay`).
+Requires `relay-mcp` on PATH (`pnpm add -g @ticoxz/relay@1.3.0` or `pnpm link --global` from a Git clone).
 
 ## Tools
 
@@ -43,4 +43,4 @@ Explain context first; do not run commands or edit files until the user confirms
 
 ## 90-day adoption review
 
-90 days after `@ticoxz/relay@1.3.0` is on the registry (`pnpm publish` / npm): if MCP/JSON are unused, defer new MCP features and focus on readers, `relay doctor`, and HANDOFF.md workflow. See [doc.md](../doc.md) §8.
+90 days after `@ticoxz/relay@1.3.0` is on the registry (`pnpm publish`): if MCP/JSON are unused, defer new MCP features and focus on readers, `relay doctor`, and HANDOFF.md workflow. See [doc.md](../doc.md) §8.

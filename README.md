@@ -111,22 +111,33 @@ The `contextvc` binary alias is kept for backward compatibility.
 
 ## Install
 
-**Requirements:** Node 18+, [pnpm](https://pnpm.io/installation) (via Corepack: `corepack enable`), [age](https://github.com/FiloSottile/age) (`brew install age` on macOS), Git.
+**Requirements:** Node 18+, **pnpm** ([Corepack](https://pnpm.io/installation): `corepack enable`), [age](https://github.com/FiloSottile/age), Git.
+
+Full guide: **[docs/INSTALL.md](docs/INSTALL.md)** (registry, Git-only, security).
+
+### Global CLI (recommended)
+
+Pin a version you trust:
 
 ```bash
 corepack enable
-pnpm add -g @ticoxz/relay
+pnpm add -g @ticoxz/relay@1.3.0
+relay --version
 ```
 
-npm also works: `npm install -g @ticoxz/relay` (same package on the npm registry).
-
-**From source:**
+### From Git (no `pnpm add -g`)
 
 ```bash
 git clone https://github.com/ticoxz/Relay.git && cd Relay
 corepack enable
-pnpm install && pnpm run build && pnpm link --global
+pnpm install --frozen-lockfile
+pnpm run build
+pnpm link --global
 ```
+
+### Supply-chain note
+
+pnpm installs from the **npm registry** (`@ticoxz/relay`). After recent npm attacks, prefer **pinned versions** or **build from Git** above. This repo uses `pnpm-lock.yaml` and CI runs `pnpm install --frozen-lockfile`.
 
 ---
 
@@ -302,12 +313,23 @@ Do not approve or run CI — checklist only.
 
 ## Development
 
+This repo is **pnpm-only** (`packageManager` in `package.json`; `npm install` is blocked).
+
 ```bash
 corepack enable
-pnpm install
+pnpm install --frozen-lockfile
 pnpm run build && pnpm test
-pnpm publish --access public   # publishes to npm registry; package: @ticoxz/relay
+pnpm link --global
 ```
+
+Publish (maintainers, 2FA on npm):
+
+```bash
+pnpm login
+pnpm publish --access public
+```
+
+Tags `v*` trigger [`.github/workflows/publish.yml`](.github/workflows/publish.yml) when `NPM_TOKEN` is set in repo secrets.
 
 ---
 

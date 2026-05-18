@@ -459,7 +459,7 @@ AGE_RECIPIENTS_FILE=./.ai-memory/recipients.txt  # Auto-configurada
 - VS Code Copilot reader + `inject` bridge
 - GitHub Action: comentario en PR si cambia `HANDOFF.md`
 - CLI UX: banners, `relay handoff --for-agent`, `relay doctor`
-- Paquete `@ticoxz/relay@1.3.0` (pnpm/npm registry)
+- Paquete `@ticoxz/relay@1.3.0` (pnpm; registry npmjs)
 
 ### v1.3.x — Fricción cero (en curso)
 
@@ -471,7 +471,7 @@ AGE_RECIPIENTS_FILE=./.ai-memory/recipients.txt  # Auto-configurada
 
 ### v1.4 — Team relay (próximo)
 
-- Adopción pnpm/npm + tag estable en Action (`@v1.3.0`)
+- Adopción pnpm + tag estable en Action (`@v1.3.0`)
 - Plantillas onboarding/reviewer en README (hecho)
 - Métricas manuales: PRs con diff en HANDOFF, downloads npm
 

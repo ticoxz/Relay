@@ -16,12 +16,14 @@
     "LICENSE"
   ],
   "engines": {
-    "node": ">=18"
+    "node": ">=18",
+    "pnpm": ">=9.15.0"
   },
   "publishConfig": {
     "access": "public"
   },
   "scripts": {
+    "preinstall": "npx only-allow pnpm",
     "build": "tsc",
     "prepublishOnly": "pnpm run build && pnpm test",
     "start": "node dist/cli/index.js",
@@ -65,6 +67,7 @@
     "@types/jest": "^30.0.0",
     "@types/node": "^22.0.0",
     "jest": "^30.4.2",
+    "only-allow": "1.2.1",
     "ts-jest": "^29.4.9",
     "ts-node": "^10.9.2",
     "typescript": "^5.0.0"
