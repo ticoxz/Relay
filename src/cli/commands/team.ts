@@ -12,9 +12,10 @@ teamCommand
   .command('add <publicKey>')
   .description('Añade la llave pública de un colaborador para que pueda desencriptar los chats')
   .action((publicKey: string) => {
+    Logger.banner('team add', 'Nuevo destinatario age');
     try {
       AgeEncryption.addRecipient(publicKey);
-      Logger.success('Llave añadida correctamente a la lista de destinatarios.');
+      Logger.success('Llave añadida a recipients.txt');
     } catch (error: any) {
       Logger.error('Error al añadir la llave: ' + error.message);
     }
@@ -24,12 +25,12 @@ teamCommand
   .command('list')
   .description('Lista los destinatarios autorizados')
   .action(() => {
+    Logger.banner('team list', 'Destinatarios age');
     const recipients = AgeEncryption.getRecipients();
     if (recipients.length === 0) {
-      Logger.warn('No hay destinatarios configurados.');
+      Logger.warn('No hay destinatarios. Usá relay team auto-add');
     } else {
-      Logger.info('Destinatarios autorizados:');
-      recipients.forEach(r => console.log(` - ${r.substring(0, 50)}${r.length > 50 ? '...' : ''}`));
+      recipients.forEach((r, i) => Logger.dim(`${i + 1}. ${r.substring(0, 60)}${r.length > 60 ? '…' : ''}`));
     }
   });
 
@@ -37,22 +38,23 @@ teamCommand
   .command('auto-add')
   .description('Detecta automáticamente tus llaves SSH públicas y las añade')
   .action(() => {
+    Logger.banner('team auto-add', 'Detectar ~/.ssh');
     try {
       const sshKeys = AgeEncryption.findSshKeys();
       if (sshKeys.length === 0) {
-        Logger.error('No se encontraron llaves SSH públicas en ~/.ssh/');
+        Logger.error('No hay llaves SSH públicas en ~/.ssh/');
         return;
       }
 
-      Logger.info(`Se encontraron ${sshKeys.length} llave(s) SSH:`);
-      sshKeys.forEach(k => console.log(`  - ${k}`));
+      Logger.phase('🔑', `${sshKeys.length} llave(s) encontrada(s)`);
+      sshKeys.forEach(k => Logger.dim(k));
 
       sshKeys.forEach(keyPath => {
         const content = fs.readFileSync(keyPath, 'utf-8').trim();
         AgeEncryption.addRecipient(content);
       });
 
-      Logger.success(`${sshKeys.length} llave(s) añadida(s) a la lista de destinatarios.`);
+      Logger.success(`${sshKeys.length} llave(s) añadida(s)`);
     } catch (error: any) {
       Logger.error('Error al detectar llaves SSH: ' + error.message);
     }

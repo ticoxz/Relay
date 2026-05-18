@@ -30,11 +30,11 @@ export class ModularSummarizer {
 
   async process(session: OpenCodeSession): Promise<OpenCodeSession | SummarizedSession> {
     if (!this.shouldSummarize(session)) {
-      Logger.info(`Sesión ${session.id} no necesita resumen.`);
+      Logger.dim(`Sesión ${session.id} — sin resumen necesario`);
       return session;
     }
 
-    Logger.info(`Procesando sesión ${session.id} (método: ${this.config.provider})...`);
+    Logger.dim(`Resumiendo ${session.id} (${this.config.provider})…`);
 
     switch (this.config.provider) {
       case 'openai':
@@ -43,7 +43,7 @@ export class ModularSummarizer {
         return this.summarizeLocally(session);
       case 'none':
       default:
-        Logger.info('Resumen desactivado, guardando sesión completa.');
+        Logger.dim('Resumen desactivado — sesión completa');
         return session;
     }
   }

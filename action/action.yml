@@ -1,0 +1,67 @@
+name: 'Relay Handoff'
+description: 'Post AI session handoff context on pull requests when HANDOFF.md changes'
+branding:
+  icon: package
+  color: blue
+
+inputs:
+  max_comment_lines:
+    description: 'Max lines from HANDOFF.md to include in PR comment'
+    required: false
+    default: '40'
+  fail_if_stale_days:
+    description: 'Fail if HANDOFF.md is older than N days (0 = disabled)'
+    required: false
+    default: '0'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Check HANDOFF exists
+      id: check
+      shell: bash
+      run: |
+        if [ ! -f .ai-memory/HANDOFF.md ]; then
+          echo "found=false" >> "$GITHUB_OUTPUT"
+          echo "No .ai-memory/HANDOFF.md in this repo. Run: relay init && relay sync --handoff"
+          exit 0
+        fi
+        echo "found=true" >> "$GITHUB_OUTPUT"
+
+    - name: Staleness check
+      if: steps.check.outputs.found == 'true' && inputs.fail_if_stale_days != '0'
+      shell: bash
+      run: |
+        DAYS="${{ inputs.fail_if_stale_days }}"
+        if [ "$(find .ai-memory/HANDOFF.md -mtime +"$DAYS" 2>/dev/null | wc -l)" -gt 0 ]; then
+          echo "::error::HANDOFF.md is older than ${DAYS} days. Run: relay sync --handoff"
+          exit 1
+        fi
+
+    - name: Post PR comment when HANDOFF changed
+      if: github.event_name == 'pull_request' && steps.check.outputs.found == 'true'
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        if ! git diff --name-only "${{ github.event.pull_request.base.sha }}" HEAD | grep -q '^\.ai-memory/HANDOFF\.md$'; then
+          echo "HANDOFF.md unchanged in this PR — skipping comment."
+          exit 0
+        fi
+        MAX="${{ inputs.max_comment_lines }}"
+        BODY_FILE=$(mktemp)
+        {
+          echo "## Relay AI handoff"
+          echo ""
+          echo "This PR updates \`.ai-memory/HANDOFF.md\` (session context for humans and agents)."
+          echo ""
+          echo "<details><summary>Handoff excerpt</summary>"
+          echo ""
+          head -n "$MAX" .ai-memory/HANDOFF.md
+          echo ""
+          echo "</details>"
+          echo ""
+          echo "Full file is in the repo. For agents: use \`HANDOFF.json\` or MCP \`get_handoff_json\`."
+        } > "$BODY_FILE"
+        gh pr comment "${{ github.event.pull_request.number }}" --body-file "$BODY_FILE"
+        rm -f "$BODY_FILE"

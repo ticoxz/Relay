@@ -85,17 +85,17 @@ export class HookInstaller {
 
   static installPreCommit(): void {
     this.appendOrCreateHook('pre-commit', PRE_COMMIT_HOOK_CONTENT);
-    console.log('✅ Git hook pre-commit instalado.');
+    if (process.stdout.isTTY) console.log('  ✅ Git hook pre-commit instalado.');
   }
 
   static installPostCheckout(): void {
     this.appendOrCreateHook('post-checkout', POST_CHECKOUT_HOOK_CONTENT);
-    console.log('✅ Git hook post-checkout instalado.');
+    if (process.stdout.isTTY) console.log('  ✅ Git hook post-checkout instalado.');
   }
 
   static installPostMerge(): void {
     this.appendOrCreateHook('post-merge', POST_MERGE_HOOK_CONTENT);
-    console.log('✅ Git hook post-merge instalado.');
+    if (process.stdout.isTTY) console.log('  ✅ Git hook post-merge instalado.');
   }
 
   static installAll(): void {

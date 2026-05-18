@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/ticoxz/Relay/schema/HANDOFF.schema.json",
+  "title": "Relay Handoff Document",
+  "description": "Machine-readable AI session handoff for agents (v1). Stable contract; breaking changes use version 2.",
+  "type": "object",
+  "required": [
+    "version",
+    "generated_at",
+    "session_id",
+    "project",
+    "summary",
+    "agent_instructions"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "type": "integer",
+      "const": 1
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "session_id": {
+      "type": "string"
+    },
+    "project": {
+      "type": "string"
+    },
+    "summary": {
+      "type": "string"
+    },
+    "decisions": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "key_files": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "open_questions": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "next_steps": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Orientative only; not automatic tasks"
+    },
+    "do_not_run": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Explicit guardrails for autonomous agents"
+    },
+    "agent_instructions": {
+      "type": "object",
+      "required": ["do_not_execute", "first_response"],
+      "properties": {
+        "do_not_execute": {
+          "type": "boolean",
+          "description": "Agent must not run commands or edit files until user confirms"
+        },
+        "first_response": {
+          "type": "string",
+          "description": "What the agent should do when only handoff is provided"
+        }
+      }
+    },
+    "transcript": {
+      "type": "object",
+      "properties": {
+        "encrypted_path": { "type": "string" },
+        "decrypt_command": { "type": "string" }
+      }
+    },
+    "paths": {
+      "type": "object",
+      "properties": {
+        "handoff_md": { "type": "string" },
+        "handoff_json": { "type": "string" }
+      }
+    }
+  }
+}

@@ -37,40 +37,36 @@ export const statusCommand = new Command('status')
         return;
       }
 
-      Logger.header('📊 Estado de Relay');
+      Logger.banner('status', path.basename(process.cwd()));
 
-      console.log(`\n${'Configuración:'}`);
-      console.log(`  Proyecto: ${path.basename(process.cwd())}`);
-      console.log(`  Encriptación: ${config?.encryption?.enabled ? '✅ Activada' : '❌ Desactivada'}`);
-      console.log(`  Resumidor: ${config?.summarizer?.provider || 'local'}`);
+      const rows: Array<[string, string]> = [
+        ['Proyecto', path.basename(process.cwd())],
+        ['Encriptación', config?.encryption?.enabled ? '✅ activa' : '❌ off'],
+        ['Resumidor', config?.summarizer?.provider || 'local'],
+      ];
 
       if (fs.existsSync(sessionsDir)) {
         const files = fs.readdirSync(sessionsDir).filter(f => f.endsWith('.age') || f.endsWith('.json'));
         const totalSize = files.reduce((acc, f) => acc + fs.statSync(path.join(sessionsDir, f)).size, 0);
-        const encryptedCount = files.filter(f => f.endsWith('.age')).length;
-
-        console.log(`\n${'Sesiones guardadas:'}`);
-        console.log(`  Total: ${files.length}`);
-        console.log(`  Encriptadas: ${encryptedCount}`);
-        console.log(`  Tamaño total: ${Math.round(totalSize / 1024)} KB`);
+        rows.push(['Sesiones repo', String(files.length)]);
+        rows.push(['Cifradas', String(files.filter(f => f.endsWith('.age')).length)]);
+        rows.push(['Tamaño', `${Math.round(totalSize / 1024)} KB`]);
       }
 
       const handoffPath = path.join(memoryDir, 'HANDOFF.md');
       if (fs.existsSync(handoffPath)) {
         const stat = fs.statSync(handoffPath);
-        console.log(`\n${'Handoff:'}`);
-        console.log(`  HANDOFF.md: ${Math.round(stat.size / 1024)} KB (${stat.mtime.toLocaleString()})`);
+        rows.push(['HANDOFF.md', `${Math.round(stat.size / 1024)} KB · ${stat.mtime.toLocaleDateString()}`]);
       }
-
-      console.log(`\n${'Editores:'} opencode | antigravity | cursor | vscode`);
-      console.log(`  relay status --editor <nombre> --sessions`);
 
       const recipients = AgeEncryption.getRecipients();
       if (recipients.length > 0) {
-        console.log(`\n${'Equipo:'}`);
-        console.log(`  Destinatarios: ${recipients.length}`);
+        rows.push(['Equipo', `${recipients.length} destinatario(s)`]);
       }
 
+      Logger.summaryBox('Estado', rows);
+      Logger.phase('🧭', 'Editores disponibles');
+      Logger.dim('relay status --editor <opencode|antigravity|cursor|vscode> --sessions');
       Logger.divider();
     } catch (error: any) {
       Logger.error('Error al obtener estado: ' + error.message);

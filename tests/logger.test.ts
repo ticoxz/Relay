@@ -47,7 +47,7 @@ describe('Logger', () => {
 
   describe('step', () => {
     it('should log step with number', () => {
-      Logger.step(1, 'Step message');
+      Logger.step(1, 5, 'Step message');
       expect(consoleLogSpy).toHaveBeenCalled();
     });
   });
@@ -59,14 +59,14 @@ describe('Logger', () => {
     });
   });
 
-  describe('quiet', () => {
+  describe('logIfNotQuiet', () => {
     it('should log when not quiet', () => {
-      Logger.quiet('test', false);
+      Logger.logIfNotQuiet('test', false);
       expect(consoleLogSpy).toHaveBeenCalledWith('test');
     });
 
     it('should not log when quiet', () => {
-      Logger.quiet('test', true);
+      Logger.logIfNotQuiet('test', true);
       expect(consoleLogSpy).not.toHaveBeenCalled();
     });
   });

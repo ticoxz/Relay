@@ -39,6 +39,9 @@ export async function writeSessionsToRepo(
   sessions: OpenCodeSession[],
   isQuiet: boolean = false
 ): Promise<WriteSessionsResult> {
+  const prevQuiet = Logger.quiet;
+  if (isQuiet) Logger.setQuiet(true);
+
   const cwd = process.cwd();
   const memoryDir = path.join(cwd, '.ai-memory', 'sessions');
 
@@ -59,7 +62,7 @@ export async function writeSessionsToRepo(
   for (const session of sessions) {
     const processedSession = await summarizer.process(session);
 
-    const baseExt = ('isSummary' in processedSession) ? '.summary.json' : '.json';
+    const baseExt = 'isSummary' in processedSession ? '.summary.json' : '.json';
     const finalExt = useEncryption ? `${baseExt}.age` : baseExt;
     const fileName = `session-${processedSession.id}${finalExt}`;
     const filePath = path.join(memoryDir, fileName);
@@ -71,9 +74,7 @@ export async function writeSessionsToRepo(
       const existingContent = readExistingContent(existingPath, useEncryption);
       if (existingContent === content) {
         skipped++;
-        if (!isQuiet) {
-          Logger.info(`  -> Sin cambios (omitida): ${path.basename(existingPath)}`);
-        }
+        Logger.sessionSaved(path.basename(existingPath), 'skip');
         continue;
       }
     }
@@ -90,7 +91,6 @@ export async function writeSessionsToRepo(
         BackupManager.createBackup(filePath);
         fs.unlinkSync(filePath);
       }
-      // Remove alternate extension if session type changed (full vs summary)
       if (existingPath && existingPath !== filePath && fs.existsSync(existingPath)) {
         BackupManager.createBackup(existingPath);
         fs.unlinkSync(existingPath);
@@ -100,16 +100,24 @@ export async function writeSessionsToRepo(
       written++;
     } catch (error) {
       if (fs.existsSync(tempPath)) {
-        try { fs.unlinkSync(tempPath); } catch { /* ignore */ }
+        try {
+          fs.unlinkSync(tempPath);
+        } catch {
+          /* ignore */
+        }
       }
       throw error;
     }
 
-    if (!isQuiet) {
-      const action = useEncryption ? 'ENCRIPTADA' : 'PLANO';
-      Logger.info(`  -> Guardada (${action}): ${fileName}`);
-    }
+    const kind =
+      'isSummary' in processedSession
+        ? 'summary'
+        : useEncryption
+          ? 'encrypted'
+          : 'plain';
+    Logger.sessionSaved(fileName, kind);
   }
 
+  Logger.setQuiet(prevQuiet);
   return { written, skipped };
 }

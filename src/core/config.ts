@@ -26,7 +26,7 @@ export interface RelayConfig {
 export type ContextVCConfig = RelayConfig;
 
 const DEFAULT_CONFIG: RelayConfig = {
-  version: '1.2.0',
+  version: '1.3.0',
   encryption: {
     enabled: true,
     recipientsFile: './.ai-memory/recipients.txt',

@@ -168,7 +168,8 @@ Read the handoff and explain where we left off. Do not run commands or edit file
 | `relay init` | Wizard: encryption, summarizer, `.ai-memory/` |
 | `relay sync [--handoff]` | Export latest session per editor → repo |
 | `relay sync --all` | Export full history (slower) |
-| `relay handoff` | Regenerate `.ai-memory/HANDOFF.md` |
+| `relay handoff [--for-agent]` | Regenerate `HANDOFF.md` + `HANDOFF.json`; `--for-agent` prints chat prompt |
+| `relay-mcp` | MCP server: `get_handoff`, `get_handoff_json`, `list_sessions`, `decrypt_session` |
 | `relay inject <src> <dst>` | Bridge: `cursor` \| `vscode` \| `opencode` \| `antigravity` |
 | `relay pull [editor]` | Pull one or all editors into `.ai-memory/sessions/` |
 | `relay status [--editor] [--sessions]` | Dashboard |
@@ -178,14 +179,103 @@ Read the handoff and explain where we left off. Do not run commands or edit file
 
 ---
 
-## For agents
+## Relay for agents
 
-Relay works well as a **checkpoint between agent runs**:
+Relay is a **checkpoint between agent runs** — not a code index (see tools like CodeGraph for that).
 
-- `AGENTS.md` / rules = constitution (how to work in this repo)  
-- `HANDOFF.md` = state of the last AI session (what happened, what's pending)  
+| Artifact | Consumer |
+|----------|----------|
+| `AGENTS.md` / rules | How to work in this repo (stable) |
+| `HANDOFF.md` | Human-readable session state |
+| `HANDOFF.json` | Machine-readable schema **v1** ([`schema/HANDOFF.schema.json`](schema/HANDOFF.schema.json)) |
 
-Same Git commit can carry code + reasoning for the next human or autonomous agent.
+`HANDOFF.json` includes `agent_instructions.do_not_execute: true` so agents explain context first instead of auto-running tasks.
+
+### MCP server (`relay-mcp`)
+
+Add to Cursor → Settings → MCP:
+
+```json
+{
+  "mcpServers": {
+    "relay": {
+      "command": "relay-mcp",
+      "args": [],
+      "env": {
+        "RELAY_PROJECT_ROOT": "/absolute/path/to/your/repo"
+      }
+    }
+  }
+}
+```
+
+Tools:
+
+| Tool | Purpose |
+|------|---------|
+| `get_handoff` | `HANDOFF.md` + agent instructions |
+| `get_handoff_json` | Structured v1 document |
+| `list_sessions` | Metadata for `.ai-memory/sessions/*` |
+| `decrypt_session` | Decrypt one `.age` file (local age + SSH) |
+| `sync_status` | Whether handoff files exist |
+
+### Prompt for a new chat
+
+```bash
+relay handoff --for-agent
+```
+
+Copy the output into a **new chat**, or use:
+
+```
+@.ai-memory/HANDOFF.md
+
+Read the handoff and explain where we left off. Do not run commands or edit files until I ask.
+```
+
+### GitHub Action (PR comments)
+
+When a PR changes `HANDOFF.md`, post a short excerpt on the PR:
+
+```yaml
+# .github/workflows/relay-handoff.yml
+on:
+  pull_request:
+    paths: ['.ai-memory/HANDOFF.md', '.ai-memory/HANDOFF.json']
+permissions:
+  pull-requests: write
+jobs:
+  handoff:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: ticoxz/Relay/action@cursor/relay-rebrand-v1.1.0
+```
+
+See [`action/action.yml`](action/action.yml). Comments only run when `HANDOFF.md` changed in the PR.
+
+### Agent role templates (prompts)
+
+**Onboarding** (new teammate or new chat):
+
+```
+@.ai-memory/HANDOFF.md
+@AGENTS.md
+
+You are onboarding to this repo. Read HANDOFF for session context and AGENTS.md for rules.
+Explain the project state and suggest a 30-minute plan. Do not edit files or run commands until I confirm.
+```
+
+**Reviewer** (before merge):
+
+```
+@.ai-memory/HANDOFF.json
+
+Compare the PR diff with handoff decisions. List any contradictions or missing updates to HANDOFF.
+Do not approve or run CI — checklist only.
+```
 
 ---
 

@@ -37,10 +37,15 @@ describe('generateHandoff', () => {
     };
 
     const out = await generateHandoff(session);
-    expect(fs.existsSync(out)).toBe(true);
-    const content = fs.readFileSync(out, 'utf-8');
+    expect(fs.existsSync(out.mdPath)).toBe(true);
+    expect(fs.existsSync(out.jsonPath)).toBe(true);
+    const content = fs.readFileSync(out.mdPath, 'utf-8');
     expect(content).toContain('# AI Session Handoff');
-    expect(content).toContain('Para el asistente');
+    expect(content).toContain('For the assistant');
     expect(content).toContain('handoff-1');
+    const json = JSON.parse(fs.readFileSync(out.jsonPath, 'utf-8'));
+    expect(json.version).toBe(1);
+    expect(json.agent_instructions.do_not_execute).toBe(true);
+    expect(json.session_id).toBe('handoff-1');
   });
 });

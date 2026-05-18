@@ -16,7 +16,7 @@ const program = new Command();
 program
   .name('relay')
   .description('Relay — Git para sesiones de IA entre editores y tu equipo')
-  .version('1.2.0');
+  .version('1.3.0');
 
 program.addCommand(initCommand);
 program.addCommand(syncCommand);
