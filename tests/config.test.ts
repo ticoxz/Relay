@@ -33,7 +33,7 @@ describe('ConfigManager', () => {
       const config = ConfigManager.init();
       
       expect(config).toBeDefined();
-      expect(config.version).toBe('1.3.0');
+      expect(config.version).toBe('1.3.1');
       expect(config.encryption.enabled).toBe(true);
       expect(config.summarizer.provider).toBe('local');
       expect(fs.existsSync(path.join(testDir, '.ai-memory', 'config.json'))).toBe(true);
@@ -60,7 +60,7 @@ describe('ConfigManager', () => {
       const loaded = ConfigManager.load();
       
       expect(loaded).not.toBeNull();
-      expect(loaded!.version).toBe('1.3.0');
+      expect(loaded!.version).toBe('1.3.1');
     });
   });
 

@@ -20,7 +20,7 @@ pnpm --version
 Pin the version you trust (avoid floating `@latest` after supply-chain incidents):
 
 ```bash
-pnpm add -g @ticoxz/relay@1.3.0
+pnpm add -g @ticoxz/relay@1.3.1
 relay --version
 which relay
 which relay-mcp
@@ -51,14 +51,14 @@ cd Relay && git pull && pnpm install --frozen-lockfile && pnpm run build
 ## Option C — One-off in a project
 
 ```bash
-pnpm dlx @ticoxz/relay@1.3.0 init
-pnpm dlx @ticoxz/relay@1.3.0 sync --handoff
+pnpm dlx @ticoxz/relay@1.3.1 init
+pnpm dlx @ticoxz/relay@1.3.1 sync --handoff
 ```
 
 ## Security notes
 
 - pnpm uses the **same npm registry** as npm; switching clients does not remove registry risk.
-- Prefer **pinned versions** (`@1.3.0`) and verify the scope `@ticoxz/relay`.
+- Prefer **pinned versions** (`@1.3.1`) and verify the scope `@ticoxz/relay`.
 - For maximum control, use **Option B** and review `pnpm-lock.yaml` before `pnpm install`.
 - Enable **2FA** on your npm account if you publish the package.
 

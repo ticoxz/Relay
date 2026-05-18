@@ -121,7 +121,7 @@ Pin a version you trust:
 
 ```bash
 corepack enable
-pnpm add -g @ticoxz/relay@1.3.0
+pnpm add -g @ticoxz/relay@1.3.1
 relay --version
 ```
 
@@ -275,7 +275,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: ticoxz/Relay/action@v1.3.0
+      - uses: ticoxz/Relay/action@v1.3.1
 ```
 
 See [`action/action.yml`](action/action.yml). Comments only run when `HANDOFF.md` changed in the PR.
