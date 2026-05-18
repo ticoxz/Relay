@@ -121,6 +121,7 @@ Pin a version you trust:
 
 ```bash
 corepack enable
+pnpm setup && source ~/.zshrc   # once, if pnpm link --global fails
 pnpm add -g @ticoxz/relay@1.3.1
 relay --version
 ```

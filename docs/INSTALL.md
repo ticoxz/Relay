@@ -12,6 +12,8 @@ Relay uses **pnpm** for development and publishing. End users install the CLI wi
 ```bash
 corepack enable
 corepack prepare pnpm@9.15.0 --activate
+pnpm setup          # once: adds PNPM_HOME to ~/.zshrc
+source ~/.zshrc
 pnpm --version
 ```
 
