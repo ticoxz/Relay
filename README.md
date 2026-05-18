@@ -131,9 +131,10 @@ npm install && npm run build && npm link
 ```bash
 cd your-project && git init
 relay init
+relay doctor          # optional: verify age, config, readers
 # work with Cursor, VS Code, OpenCode, or Antigravity…
 relay sync --handoff
-git add .ai-memory/HANDOFF.md .ai-memory/config.json .ai-memory/recipients.txt
+git add .ai-memory/HANDOFF.md .ai-memory/HANDOFF.json .ai-memory/config.json .ai-memory/recipients.txt
 git commit -m "chore: AI handoff"
 ```
 
@@ -141,15 +142,16 @@ By default, `sync` imports only the **latest session per editor** (fast). Use `r
 
 ---
 
-## Context window full? Start a fresh chat
+## Context window full? (primary flow)
 
-Relay does **not** extend your editor's context limit. It lets you **save game** and **load game** in a new chat.
+When the chat is ~90% full, **save game** and **load game** in a new chat:
 
 ```bash
 relay sync --handoff
+relay handoff --for-agent   # prints copy-paste prompt
 ```
 
-In Cursor (or any supported editor), open a **New Chat** and send:
+Open a **New Chat** in your editor and send:
 
 ```
 @.ai-memory/HANDOFF.md
@@ -157,7 +159,9 @@ In Cursor (or any supported editor), open a **New Chat** and send:
 Read the handoff and explain where we left off. Do not run commands or edit files until I ask.
 ```
 
-> If you only attach the file without instructions, some agents may treat "next steps" as tasks and start executing. The prompt above avoids that. `HANDOFF.md` includes agent instructions for this case.
+> Without those instructions, some agents treat "next steps" as tasks and start executing. `HANDOFF.md` and `HANDOFF.json` include `do_not_execute` guardrails for agents.
+
+Run `relay doctor` if handoff feels stale or sync fails.
 
 ---
 
@@ -169,7 +173,8 @@ Read the handoff and explain where we left off. Do not run commands or edit file
 | `relay sync [--handoff]` | Export latest session per editor → repo |
 | `relay sync --all` | Export full history (slower) |
 | `relay handoff [--for-agent]` | Regenerate `HANDOFF.md` + `HANDOFF.json`; `--for-agent` prints chat prompt |
-| `relay-mcp` | MCP server: `get_handoff`, `get_handoff_json`, `list_sessions`, `decrypt_session` |
+| `relay doctor` | Validate age, config, readers, HANDOFF freshness |
+| `relay-mcp` | MCP server (optional): `get_handoff`, `get_handoff_json`, `list_sessions`, `decrypt_session` |
 | `relay inject <src> <dst>` | Bridge: `cursor` \| `vscode` \| `opencode` \| `antigravity` |
 | `relay pull [editor]` | Pull one or all editors into `.ai-memory/sessions/` |
 | `relay status [--editor] [--sessions]` | Dashboard |
@@ -179,7 +184,9 @@ Read the handoff and explain where we left off. Do not run commands or edit file
 
 ---
 
-## Relay for agents
+## Relay for agents (optional)
+
+MCP and `HANDOFF.json` are for power users and CI. **Start with `@HANDOFF.md`** in a new chat; add MCP only if you need programmatic access.
 
 Relay is a **checkpoint between agent runs** — not a code index (see tools like CodeGraph for that).
 
@@ -192,6 +199,8 @@ Relay is a **checkpoint between agent runs** — not a code index (see tools lik
 `HANDOFF.json` includes `agent_instructions.do_not_execute: true` so agents explain context first instead of auto-running tasks.
 
 ### MCP server (`relay-mcp`)
+
+See [docs/MCP.md](docs/MCP.md) for setup, optional rules, and the 90-day adoption review.
 
 Add to Cursor → Settings → MCP:
 
@@ -251,7 +260,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: ticoxz/Relay/action@cursor/relay-rebrand-v1.1.0
+      - uses: ticoxz/Relay/action@v1.3.0
 ```
 
 See [`action/action.yml`](action/action.yml). Comments only run when `HANDOFF.md` changed in the PR.

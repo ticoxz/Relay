@@ -3,6 +3,9 @@ dist/
 .ai-memory/sessions/
 .ai-memory/summaries/
 .ai-memory/.backups/
+.ai-memory/vscode-import/
+.ai-memory/cursor-import/
+.ai-memory/antigravity-import/
 .env
 .env.*
 *.local

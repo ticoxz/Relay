@@ -452,27 +452,36 @@ AGE_RECIPIENTS_FILE=./.ai-memory/recipients.txt  # Auto-configurada
 
 ## 8. Roadmap: Próximos Pasos
 
-### v1.0.1 — Ship (actual)
+### v1.3.0 — Ship (actual)
 
-- `.gitignore`, empaquetado npm, README alineado
-- `sync` con dedup por `session.id`
-- `relay handoff` → `.ai-memory/HANDOFF.md`
-- Hooks: `pre-commit`, `post-checkout`, `post-merge`
-- Cursor reader (`agent-transcripts/*.jsonl`)
-- `inject --session` corregido para Antigravity
+- `HANDOFF.json` schema v1 + `relay handoff` / `sync --handoff`
+- `relay-mcp` (opcional): `get_handoff`, `get_handoff_json`, `list_sessions`, `decrypt_session`, `sync_status`
+- VS Code Copilot reader + `inject` bridge
+- GitHub Action: comentario en PR si cambia `HANDOFF.md`
+- CLI UX: banners, `relay handoff --for-agent`, `relay doctor`
+- Paquete npm: `@ticoxz/relay@1.3.0`
 
-### v1.1 — Team Relay
+### v1.3.x — Fricción cero (en curso)
 
-- Guía de onboarding equipo en README
-- Tests de integración (writer, merge, cursor-reader)
-- Mejoras en reader Antigravity (listar múltiples sesiones)
+- `.gitignore` para `vscode-import/`, `cursor-import/`
+- `relay doctor` — age, recipients, readers, freshness de HANDOFF
+- README: flujo único “context full” + commitear `HANDOFF.json`
+- Workflow `relay-handoff.yml` en repo con `fail_if_stale_days: 7`
+- PR template: checklist de handoff
 
-### v1.2 — Sync rápido + npm (actual)
+### v1.4 — Team relay (próximo)
 
-- `sync` por defecto: **última sesión por editor**; `--all` para historial completo
-- `pickPrimarySession()` para HANDOFF (Cursor > Antigravity > OpenCode)
-- Paquete npm: `@ticoxz/relay@1.2.0`
-- Summarizer local menos truncado; hook pre-commit con `--handoff`
+- Adopción npm + tag estable en Action (`@v1.3.0`)
+- Plantillas onboarding/reviewer en README (hecho)
+- Métricas manuales: PRs con diff en HANDOFF, downloads npm
+
+### Agentes / MCP (gated — no apuesta principal)
+
+**Onboarding recomendado:** `@.ai-memory/HANDOFF.md` en chat nuevo, no MCP primero.
+
+Profundizar MCP solo si hay adopción real (configurado y usado >1/semana) o integración CI/SDK que requiera JSON.
+
+**Kill switch (90 días post `npm publish` 1.3.0):** si no hay uso de MCP/`HANDOFF.json` y solo se usa `.md` + `@`, congelar nuevas tools MCP e invertir en readers + `doctor` + docs.
 
 ### Fuera de scope v1.x
 
@@ -480,14 +489,20 @@ AGE_RECIPIENTS_FILE=./.ai-memory/recipients.txt  # Auto-configurada
 |------|----------|
 | Decodificar `jetskiStateSync` | **Won't fix** — usar `@path` en Antigravity |
 | UI dashboard | v2.0+ o nunca |
-| Servidor centralizado | Solo con demanda enterprise |
-| Copilot / Windsurf | Después de Cursor estable |
+| Servidor centralizado / hosted decrypt | Solo demanda enterprise |
+| Windsurf / más editores | Después de métricas VS Code + Cursor |
 
-### Futuro (v2.0+)
+### Diferido a v2.0+ (post-tracción del núcleo)
 
-- File-watcher con debounce
-- Más editores
-- OpenCode plugin `onCheckout` (media prioridad; CLI inject ya existe)
+No iniciar hasta que el loop `sync --handoff` → New Chat → `@HANDOFF` sea habitual:
+
+| Item | Notas |
+|------|-------|
+| `relay sync --watch` | Debounce; hooks cubren ~80% en flujo Git |
+| `relay bridge` | UX unificada sobre `inject` existente |
+| VS Code SQLite agent mode | Solo si `chatSessions` en disco no alcanza |
+| OpenCode plugin `onCheckout` | CLI `inject` ya existe |
+| Más editores (Windsurf, etc.) | Prioridad por demanda |
 
 ---
 

@@ -10,6 +10,7 @@ import { installHooksCommand } from './commands/install-hooks';
 import { injectCommand, pullCommand, pushCommand } from './commands/inject';
 import { statusCommand } from './commands/status';
 import { handoffCommand } from './commands/handoff';
+import { doctorCommand } from './commands/doctor';
 
 const program = new Command();
 
@@ -29,5 +30,6 @@ program.addCommand(pullCommand);
 program.addCommand(pushCommand);
 program.addCommand(statusCommand);
 program.addCommand(handoffCommand);
+program.addCommand(doctorCommand);
 
 program.parse(process.argv);

@@ -1,0 +1,23 @@
+name: Relay Handoff PR
+
+on:
+  pull_request:
+    paths:
+      - '.ai-memory/HANDOFF.md'
+      - '.ai-memory/HANDOFF.json'
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  handoff:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: ./action
+        with:
+          max_comment_lines: '40'
+          fail_if_stale_days: '7'
