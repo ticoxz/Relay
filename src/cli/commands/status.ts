@@ -102,9 +102,10 @@ async function showEditorStatus(editor: string, showSessions: boolean) {
             `  ${i + 1}. [${date}] ${msgs} msgs · ${idShort}\n     ${title}`
           );
         });
-        console.log(`\n  Inyectar → Cursor (usa el número #):`);
+        console.log(`\n  Inyectar / handoff (usa el número #):`);
         console.log(`  relay inject opencode cursor              # última (=1)`);
         console.log(`  relay inject opencode cursor --session 3  # ej. PROJECT_REPORT`);
+        console.log(`  relay handoff --editor opencode --session 3`);
       } else {
         console.log(`\n  Sin sesiones OpenCode para este proyecto.`);
         console.log(`  Abrí el repo en OpenCode, chateá, y volvé a correr este comando.`);
@@ -123,22 +124,49 @@ async function showEditorStatus(editor: string, showSessions: boolean) {
     console.log(`  Ubicación: ~/.gemini/antigravity/`);
 
     if (showSessions && brainSessions.length > 0) {
-      console.log(`\n${'Sesiones recientes:'}`);
-      const sorted = brainSessions.sort((a, b) => {
-        const statA = fs.statSync(path.join(brainDir, a));
-        const statB = fs.statSync(path.join(brainDir, b));
-        return statB.mtimeMs - statA.mtimeMs;
-      }).slice(-5);
+      const listed = await AntigravityReader.listSessions();
 
-      sorted.forEach((id: string, i: number) => {
-        const sessionPath = path.join(brainDir, id, 'session.md');
-        const exists = fs.existsSync(sessionPath);
-        const stat = exists ? fs.statSync(sessionPath) : null;
-        const size = stat ? Math.round(stat.size / 1024) : 0;
-        console.log(`  ${i + 1}. ${id.substring(0, 8)}... (${size} KB)`);
-      });
+      console.log(`\n${'Sesiones recientes (por última actividad en overview/logs):'}`);
+      const top = listed.slice(0, 10);
+
+      for (let i = 0; i < top.length; i++) {
+        const { id, mtime } = top[i];
+        const folderId = id.replace(/^antigravity-/, '');
+        const date = new Date(mtime).toLocaleString();
+        const sessionPath = path.join(brainDir, folderId, 'session.md');
+        const mdStat = fs.existsSync(sessionPath) ? fs.statSync(sessionPath) : null;
+        const mdKb = mdStat ? Math.round(mdStat.size / 1024) : 0;
+
+        const session = await AntigravityReader.readSessionById(id);
+        let msgs = session?.messages?.length ?? 0;
+        let firstUser =
+          session?.messages?.find(m => m.role === 'user')?.content ||
+          session?.messages?.[0]?.content ||
+          '';
+
+        if (!firstUser.trim() && mdStat && mdStat.size > 0) {
+          try {
+            const head = fs.readFileSync(sessionPath, 'utf-8').slice(0, 800);
+            firstUser = head.replace(/\s+/g, ' ').trim();
+          } catch {
+            /* ignore */
+          }
+        }
+
+        const preview =
+          firstUser.replace(/\s+/g, ' ').trim().substring(0, 72) ||
+          '(sin texto en overview.txt ni session.md — abrí esa sesión en Antigravity para ver el ID completo)';
+        const previewLine = preview.length >= 72 ? `${preview}…` : preview;
+
+        const idShort = folderId.length > 14 ? `${folderId.substring(0, 12)}…` : folderId;
+        const mdNote = mdKb > 0 ? ` · session.md ${mdKb} KB` : '';
+
+        console.log(`  ${i + 1}. [${date}] ${msgs} msgs · brain/${idShort}${mdNote}`);
+        console.log(`     ${previewLine}`);
+      }
 
       console.log(`\n  Inyectar: relay inject opencode antigravity`);
+      console.log(`  Handoff: relay handoff --editor antigravity --session 6`);
       console.log(`  Usar en Antigravity: @~/.gemini/antigravity/brain/<ID>/session.md`);
     }
   } else if (editor === 'cursor') {

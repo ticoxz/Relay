@@ -2,14 +2,10 @@ import { Command } from 'commander';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
-import { readOpenCodeSessions, OpenCodeSession } from '../../plugin/storage-reader';
-import { latestSessionForProject, resolveSessionRef } from '../../sync/project-filter';
-import { listSessionsForEditor } from '../../sync/list-editor-sessions';
-import { AntigravityReader } from '../../plugin/antigravity-reader';
+import { OpenCodeSession } from '../../plugin/storage-reader';
+import { resolveEditorSession } from '../../sync/resolve-editor-session';
 import { AntigravityInjector } from '../../plugin/antigravity-injector';
 import { OpenCodeInjector } from '../../plugin/opencode-injector';
-import { CursorReader } from '../../plugin/cursor-reader';
-import { VSCodeReader } from '../../plugin/vscode-reader';
 import { AgeEncryption } from '../../encryption/age';
 import { EDITOR_META, EditorKey, Logger } from '../../core/logger';
 
@@ -50,39 +46,11 @@ export const injectCommand = new Command('inject')
     }
   });
 
-async function resolveSession(
-  source: string,
-  sessionRef?: string,
-  projectPath: string = process.cwd()
-): Promise<{ session: OpenCodeSession | null; error?: string }> {
-  const editor = source as EditorKey;
-
-  if (sessionRef) {
-    const listed = await listSessionsForEditor(editor, projectPath);
-    return resolveSessionRef(listed, sessionRef);
-  }
-
-  if (source === 'opencode') {
-    const sessions = await readOpenCodeSessions();
-    return { session: latestSessionForProject(sessions, projectPath) };
-  }
-  if (source === 'antigravity') {
-    return { session: (await AntigravityReader.readLatestSession()) ?? null };
-  }
-  if (source === 'cursor') {
-    return { session: (await CursorReader.readLatestSession(projectPath)) ?? null };
-  }
-  if (source === 'vscode') {
-    return { session: (await VSCodeReader.readLatestSession(projectPath)) ?? null };
-  }
-  return { session: null };
-}
-
 async function injectLatestSession(source: string, target: string) {
   Logger.phase('🔍', `Buscando última sesión en ${editorLabel(source)}`);
 
   const result = await Logger.withSpinner('Leyendo sesión', () =>
-    resolveSession(source, undefined, process.cwd())
+    resolveEditorSession(source as EditorKey, undefined, process.cwd())
   );
 
   if (result.error) {
@@ -106,7 +74,7 @@ async function injectSpecificSession(source: string, target: string, sessionRef:
   Logger.phase('🔍', `Buscando ${label}`);
 
   const result = await Logger.withSpinner('Leyendo sesión', () =>
-    resolveSession(source, sessionRef, process.cwd())
+    resolveEditorSession(source as EditorKey, sessionRef, process.cwd())
   );
 
   if (result.error) {
@@ -223,7 +191,7 @@ export const pullCommand = new Command('pull')
         continue;
       }
 
-      const { session } = await resolveSession(ed, undefined, process.cwd());
+      const { session } = await resolveEditorSession(ed as EditorKey, undefined, process.cwd());
       if (session) {
         const recipients = AgeEncryption.getRecipients();
         const useEncryption = recipients.length > 0;

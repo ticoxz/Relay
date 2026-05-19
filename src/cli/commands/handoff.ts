@@ -1,17 +1,17 @@
 import { Command } from 'commander';
 import { generateHandoff, readHandoffJson } from '../../sync/handoff';
 import { buildAgentPrompt } from '../../sync/handoff-build';
-import { readOpenCodeSessions } from '../../plugin/storage-reader';
-import { latestSessionForProject } from '../../sync/project-filter';
-import { AntigravityReader } from '../../plugin/antigravity-reader';
-import { CursorReader } from '../../plugin/cursor-reader';
-import { VSCodeReader } from '../../plugin/vscode-reader';
-import { Logger } from '../../core/logger';
+import { resolveEditorSession } from '../../sync/resolve-editor-session';
+import { EditorKey, EDITOR_META, Logger } from '../../core/logger';
 
 export const handoffCommand = new Command('handoff')
   .description('Genera .ai-memory/HANDOFF.md para que tu equipo continúe tras git pull')
   .option('--from-repo', 'Usa la última sesión guardada en .ai-memory/sessions/')
   .option('--editor <name>', 'Última sesión del editor: opencode | antigravity | cursor | vscode')
+  .option(
+    '-s, --session <ref>',
+    'Número 1–N (relay status --editor … --sessions) o id de sesión; requiere --editor'
+  )
   .option('-o, --output <path>', 'Ruta de salida (default: .ai-memory/HANDOFF.md)')
   .option('-q, --quiet', 'Solo imprime la ruta del archivo')
   .option(
@@ -28,27 +28,50 @@ export const handoffCommand = new Command('handoff')
 
       let session = undefined;
       const projectPath = process.cwd();
+      const editors: EditorKey[] = ['opencode', 'antigravity', 'cursor', 'vscode'];
+
+      if (options.session && !options.editor) {
+        Logger.error('--session requiere --editor. Ej: relay handoff --editor opencode --session 3');
+        process.exit(1);
+      }
 
       if (options.editor) {
-        if (!options.quiet) Logger.phase('🔍', `Leyendo ${options.editor}`);
-
-        if (options.editor === 'opencode') {
-          const sessions = await readOpenCodeSessions();
-          session = latestSessionForProject(sessions, projectPath) || undefined;
-        } else if (options.editor === 'antigravity') {
-          session = (await AntigravityReader.readLatestSession()) || undefined;
-        } else if (options.editor === 'cursor') {
-          session = (await CursorReader.readLatestSession(projectPath)) || undefined;
-        } else if (options.editor === 'vscode') {
-          session = (await VSCodeReader.readLatestSession(projectPath)) || undefined;
-        } else {
+        if (!editors.includes(options.editor as EditorKey)) {
           Logger.error('Editor desconocido. Usa: opencode | antigravity | cursor | vscode');
           process.exit(1);
         }
 
+        const editor = options.editor as EditorKey;
+        const label = options.session
+          ? /^\d+$/.test(String(options.session).trim())
+            ? `#${options.session} · ${EDITOR_META[editor].label}`
+            : `${options.session} · ${EDITOR_META[editor].label}`
+          : EDITOR_META[editor].label;
+
+        if (!options.quiet) Logger.phase('🔍', `Leyendo ${label}`);
+
+        const resolved = await resolveEditorSession(
+          editor,
+          options.session ? String(options.session) : undefined,
+          projectPath
+        );
+
+        if (resolved.error) {
+          Logger.error(resolved.error);
+          if (/^\d+$/.test(String(options.session).trim())) {
+            Logger.dim(`Listá sesiones: relay status --editor ${editor} --sessions`);
+          }
+          process.exit(1);
+        }
+
+        session = resolved.session || undefined;
         if (!session) {
           Logger.error(`No hay sesiones en ${options.editor}.`);
           process.exit(1);
+        }
+
+        if (!options.quiet && options.session) {
+          Logger.dim(`Sesión: ${session.id} · ${session.messages?.length ?? 0} mensajes`);
         }
       }
 
