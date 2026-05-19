@@ -3,10 +3,8 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import { readOpenCodeSessions, OpenCodeSession } from '../../plugin/storage-reader';
-import {
-  findSessionById,
-  latestSessionForProject,
-} from '../../sync/project-filter';
+import { latestSessionForProject, resolveSessionRef } from '../../sync/project-filter';
+import { listSessionsForEditor } from '../../sync/list-editor-sessions';
 import { AntigravityReader } from '../../plugin/antigravity-reader';
 import { AntigravityInjector } from '../../plugin/antigravity-injector';
 import { OpenCodeInjector } from '../../plugin/opencode-injector';
@@ -25,7 +23,10 @@ export const injectCommand = new Command('inject')
   .description('Inyecta sesiones entre editores (OpenCode ↔ Antigravity ↔ Cursor ↔ VS Code)')
   .argument('<source>', 'Editor origen: opencode | antigravity | cursor | vscode')
   .argument('<target>', 'Editor destino: opencode | antigravity | cursor | vscode')
-  .option('-s, --session <id>', 'ID de sesión específica a migrar (opcional)')
+  .option(
+    '-s, --session <ref>',
+    'Número 1–N (como relay status --sessions) o id de sesión'
+  )
   .action(async (source: string, target: string, options) => {
     if (!SUPPORTED_EDITORS.includes(source as EditorKey) || !SUPPORTED_EDITORS.includes(target as EditorKey)) {
       Logger.error(`Editores válidos: ${SUPPORTED_EDITORS.join(', ')}`);
@@ -51,62 +52,77 @@ export const injectCommand = new Command('inject')
 
 async function resolveSession(
   source: string,
-  sessionId?: string,
+  sessionRef?: string,
   projectPath: string = process.cwd()
-): Promise<OpenCodeSession | null> {
+): Promise<{ session: OpenCodeSession | null; error?: string }> {
+  const editor = source as EditorKey;
+
+  if (sessionRef) {
+    const listed = await listSessionsForEditor(editor, projectPath);
+    return resolveSessionRef(listed, sessionRef);
+  }
+
   if (source === 'opencode') {
     const sessions = await readOpenCodeSessions();
-    if (sessionId) return findSessionById(sessions, sessionId, projectPath);
-    return latestSessionForProject(sessions, projectPath);
+    return { session: latestSessionForProject(sessions, projectPath) };
   }
   if (source === 'antigravity') {
-    return sessionId
-      ? AntigravityReader.readSessionById(sessionId)
-      : AntigravityReader.readLatestSession();
+    return { session: (await AntigravityReader.readLatestSession()) ?? null };
   }
   if (source === 'cursor') {
-    return sessionId
-      ? CursorReader.readSessionById(sessionId, projectPath)
-      : CursorReader.readLatestSession(projectPath);
+    return { session: (await CursorReader.readLatestSession(projectPath)) ?? null };
   }
   if (source === 'vscode') {
-    return sessionId
-      ? VSCodeReader.readSessionById(sessionId, projectPath)
-      : VSCodeReader.readLatestSession(projectPath);
+    return { session: (await VSCodeReader.readLatestSession(projectPath)) ?? null };
   }
-  return null;
+  return { session: null };
 }
 
 async function injectLatestSession(source: string, target: string) {
   Logger.phase('🔍', `Buscando última sesión en ${editorLabel(source)}`);
 
-  const session = await Logger.withSpinner('Leyendo sesión', () =>
+  const result = await Logger.withSpinner('Leyendo sesión', () =>
     resolveSession(source, undefined, process.cwd())
   );
 
-  if (!session) {
-    Logger.warn(`No hay sesiones en ${editorLabel(source)}.`);
+  if (result.error) {
+    Logger.error(result.error);
+    return;
+  }
+  if (!result.session) {
+    Logger.warn(`No hay sesiones en ${editorLabel(source)} para este proyecto.`);
     return;
   }
 
-  Logger.success(`Sesión encontrada: ${session.id}`);
-  Logger.dim(`${session.messages.length} mensajes`);
-  await performInjection(session, target);
+  Logger.success(`Sesión encontrada: ${result.session.id}`);
+  Logger.dim(`${result.session.messages.length} mensajes`);
+  await performInjection(result.session, target);
 }
 
-async function injectSpecificSession(source: string, target: string, sessionId: string) {
-  Logger.phase('🔍', `Buscando ${sessionId} en ${editorLabel(source)}`);
+async function injectSpecificSession(source: string, target: string, sessionRef: string) {
+  const label = /^\d+$/.test(sessionRef.trim())
+    ? `#${sessionRef.trim()} en ${editorLabel(source)}`
+    : sessionRef;
+  Logger.phase('🔍', `Buscando ${label}`);
 
-  const session = await Logger.withSpinner('Leyendo sesión', () =>
-    resolveSession(source, sessionId, process.cwd())
+  const result = await Logger.withSpinner('Leyendo sesión', () =>
+    resolveSession(source, sessionRef, process.cwd())
   );
 
-  if (!session) {
-    Logger.error(`Sesión ${sessionId} no encontrada en ${editorLabel(source)}.`);
+  if (result.error) {
+    Logger.error(result.error);
+    return;
+  }
+  if (!result.session) {
+    Logger.error(`Sesión no encontrada en ${editorLabel(source)}.`);
     return;
   }
 
-  await performInjection(session, target);
+  if (/^\d+$/.test(sessionRef.trim())) {
+    Logger.dim(`→ ${result.session.id} (${result.session.messages.length} msgs)`);
+  }
+
+  await performInjection(result.session, target);
 }
 
 function writeEditorImportMarkdown(session: OpenCodeSession, subdir: string): string {
@@ -207,7 +223,7 @@ export const pullCommand = new Command('pull')
         continue;
       }
 
-      const session = await resolveSession(ed);
+      const { session } = await resolveSession(ed, undefined, process.cwd());
       if (session) {
         const recipients = AgeEncryption.getRecipients();
         const useEncryption = recipients.length > 0;

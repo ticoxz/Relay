@@ -6,10 +6,7 @@ import { ConfigManager } from '../../core/config';
 import { Logger } from '../../core/logger';
 import { AgeEncryption } from '../../encryption/age';
 import { readOpenCodeSessions } from '../../plugin/storage-reader';
-import {
-  filterSessionsByProject,
-  sortSessionsNewestFirst,
-} from '../../sync/project-filter';
+import { listSessionsForEditor } from '../../sync/list-editor-sessions';
 import { AntigravityReader } from '../../plugin/antigravity-reader';
 import { CursorReader } from '../../plugin/cursor-reader';
 import { VSCodeReader } from '../../plugin/vscode-reader';
@@ -85,9 +82,7 @@ async function showEditorStatus(editor: string, showSessions: boolean) {
     Logger.header('📊 OpenCode Sessions');
     const projectPath = process.cwd();
     const allSessions = await readOpenCodeSessions();
-    const sessions = sortSessionsNewestFirst(
-      filterSessionsByProject(allSessions, projectPath)
-    );
+    const sessions = await listSessionsForEditor('opencode', projectPath);
     console.log(`\n  Proyecto: ${projectPath}`);
     console.log(`  Sesiones de este proyecto: ${sessions.length} (de ${allSessions.length} en disco)`);
     console.log(`  Ubicación: ~/.local/share/opencode/opencode.db`);
@@ -107,9 +102,9 @@ async function showEditorStatus(editor: string, showSessions: boolean) {
             `  ${i + 1}. [${date}] ${msgs} msgs · ${idShort}\n     ${title}`
           );
         });
-        console.log(`\n  Inyectar última → Cursor:`);
-        console.log(`  relay inject opencode cursor`);
-        console.log(`  relay inject opencode cursor --session ${sessions[0].id}`);
+        console.log(`\n  Inyectar → Cursor (usa el número #):`);
+        console.log(`  relay inject opencode cursor              # última (=1)`);
+        console.log(`  relay inject opencode cursor --session 3  # ej. PROJECT_REPORT`);
       } else {
         console.log(`\n  Sin sesiones OpenCode para este proyecto.`);
         console.log(`  Abrí el repo en OpenCode, chateá, y volvé a correr este comando.`);

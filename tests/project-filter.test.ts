@@ -2,6 +2,7 @@ import path from 'path';
 import {
   filterSessionsByProject,
   latestSessionForProject,
+  resolveSessionRef,
   sessionMatchesProject,
 } from '../src/sync/project-filter';
 import { OpenCodeSession } from '../src/plugin/storage-reader';
@@ -33,5 +34,17 @@ describe('project-filter', () => {
   it('latestSessionForProject returns newest in project', () => {
     const latest = latestSessionForProject(all, LB);
     expect(latest?.id).toBe('c');
+  });
+
+  it('resolveSessionRef picks by 1-based index', () => {
+    const sorted = [sess('c', LB, 3000), sess('a', LB, 1000)];
+    const r = resolveSessionRef(sorted, '2');
+    expect(r.session?.id).toBe('a');
+  });
+
+  it('resolveSessionRef rejects out of range index', () => {
+    const r = resolveSessionRef([sess('a', LB, 1)], '5');
+    expect(r.session).toBeNull();
+    expect(r.error).toMatch(/1–1/);
   });
 });
